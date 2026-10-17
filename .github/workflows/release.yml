@@ -68,8 +68,8 @@ jobs:
 
       - name: Extract release notes from CHANGELOG.md
         run: |
-          awk -v v="$VERSION" '
-            $0 ~ "^## \[" v "\]" {found=1; next}
+          awk -v h="## [$VERSION]" '
+            index($0, h) == 1 {found=1; next}
             found && /^## \[/ {exit}
             found {print}
           ' CHANGELOG.md > notes.md
