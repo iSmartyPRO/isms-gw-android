@@ -12,6 +12,7 @@ Dual-SIM & eSIM · REST API · Web admin panel · Webhooks · Telegram bot · Mu
 ![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white)
 ![Target SDK](https://img.shields.io/badge/targetSdk-36-0B0F1A)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 [Download APK](https://github.com/iSmartyPRO/isms-gw-android/releases/latest) ·
 [Features](#features) ·
@@ -186,6 +187,10 @@ See [docs/RELEASING.md](docs/RELEASING.md) for the one-time setup of the signing
 ## Privacy
 
 iSMS GW has no cloud service, analytics or ads. Read the full [privacy policy](docs/privacy-policy.html).
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE). Copyright © 2026 [iSmartyPro](https://www.ismarty.pro).
 
 ## Contributing
 
