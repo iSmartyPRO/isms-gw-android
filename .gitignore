@@ -1,0 +1,31 @@
+# Gradle / build
+.gradle/
+.kotlin/
+build/
+app/build/
+local.properties
+
+# Signing material — never commit
+keystore/
+keystore.properties
+*.jks
+*.keystore
+
+# Local build outputs
+release/
+dist/
+*.apk
+*.aab
+
+# IDE and tooling files
+.idea/
+*.iml
+.vscode/
+.claude/
+.cursor/
+.cursorrules
+.cursorignore
+CLAUDE.md
+AGENTS.md
+.DS_Store
+Thumbs.db

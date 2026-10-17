@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iSMS GW — Privacy Policy</title>
+<style>
+  body{max-width:760px;margin:0 auto;padding:32px 20px 64px;font:16px/1.65 -apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#1d2433;background:#fff}
+  h1{font-size:28px;margin-bottom:4px}h2{font-size:19px;margin-top:32px}
+  .muted{color:#6b7385}code{background:#f2f4f8;padding:1px 6px;border-radius:5px}
+  hr{border:none;border-top:1px solid #e3e6ee;margin:40px 0}
+</style>
+</head>
+<body>
+<h1>iSMS GW Privacy Policy</h1>
+<p class="muted">Effective date: 17 October 2026 · Applies to iSMS GW for Android, version 1.0 and later</p>
+
+<p>iSMS GW ("the app") is an Android SMS app with a built-in SMS &amp; USSD gateway, developed by
+<a href="https://www.ismarty.pro">iSmartyPro</a>. This policy explains what data the app processes and how.
+In short: <b>the app has no cloud service and never sends any data to the developer.</b></p>
+
+<h2>1. Data processed</h2>
+<ul>
+  <li><b>SMS messages</b> — text, sender/recipient number, time and delivery status, to display conversations and run the gateway.</li>
+  <li><b>SIM card details</b> — carrier, SIM phone number, slot and subscription id, to route messages through the right SIM.</li>
+  <li><b>USSD requests and responses</b> and a <b>call log</b> (number, time, duration) when you use these features.</li>
+  <li><b>Technical log</b> — gateway events and IP addresses of local-network clients, for security (firewall, brute-force protection).</li>
+</ul>
+<p>The app does not collect location, contacts or advertising identifiers and contains no analytics or advertising SDKs.</p>
+
+<h2>2. Storage</h2>
+<p>Data is stored only on your device: in the Android system SMS store and in the app's private database.
+Web-panel passwords and API keys are stored as cryptographic hashes; tokens and secrets are encrypted with an Android Keystore key.
+History is deleted automatically according to the retention period you choose.</p>
+
+<h2>3. Sharing</h2>
+<p>The developer receives no data. Data leaves the device <b>only according to your own configuration</b>:</p>
+<ul>
+  <li>to the webhook URLs you add;</li>
+  <li>to your SMS server (WebSocket) whose address and token you enter;</li>
+  <li>to your Telegram bot, if you enable it and link a chat — message texts and numbers then pass through Telegram's servers and are processed under <a href="https://telegram.org/privacy">Telegram's privacy policy</a>;</li>
+  <li>to clients that call the local API with an API key you issued, and to the web panel after signing in.</li>
+</ul>
+<p>The gateway is off until you start it. HTTPS and WSS encrypt data in transit; plain HTTP on the local network does not —
+enable HTTPS in the settings.</p>
+
+<h2>4. Permissions</h2>
+<ul>
+  <li><code>SMS</code> (send, receive, read) — core function of a default SMS app;</li>
+  <li><code>Phone</code> — identify SIM cards for dual-SIM support, USSD requests and click-to-call;</li>
+  <li><code>Notifications</code> — new-message and gateway status notifications;</li>
+  <li><code>Network</code> — local server, webhooks and the connection to your server.</li>
+</ul>
+
+<h2>5. Your control and deletion</h2>
+<p>You can clear the gateway history and logs in the web panel, export or delete your data with the backup feature,
+and remove all app data by uninstalling the app. SMS in the system store are managed like any other Android messages.</p>
+
+<h2>6. Children</h2>
+<p>The app is not directed at children under 13 and does not knowingly collect their data.</p>
+
+<h2>7. Changes</h2>
+<p>Updates to this policy are published on this page with a new effective date.</p>
+
+<h2>8. Contact</h2>
+<p>Questions about privacy: <a href="https://www.ismarty.pro">www.ismarty.pro</a>.</p>
+
+<hr>
+
+<h1 lang="ru">Политика конфиденциальности iSMS GW</h1>
+<p lang="ru">iSMS GW — SMS-приложение для Android со встроенным SMS- и USSD-шлюзом. У приложения нет облака, рекламы и аналитики,
+и оно не передаёт данные разработчику. Обрабатываются SMS (текст, номер, время, статус), сведения о SIM-картах, USSD-запросы,
+журнал звонков и технический журнал безопасности. Данные хранятся только на устройстве; пароли и ключи — в виде хешей,
+токены и секреты зашифрованы ключом Android Keystore. Данные покидают устройство только по вашей настройке: на ваши вебхуки,
+ваш SMS-сервер, ваш Telegram-бот (через серверы Telegram) и клиентам с выданным вами API-ключом. Историю можно очистить
+в веб-панели; удаление приложения удаляет все его данные. Контакты: <a href="https://www.ismarty.pro">www.ismarty.pro</a>.</p>
+</body>
+</html>

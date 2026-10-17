@@ -1,0 +1,31 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for reporting! Please do **not** post security vulnerabilities here — see SECURITY.md."
+  - type: input
+    id: version
+    attributes: { label: iSMS GW version, placeholder: "1.2.0" }
+    validations: { required: true }
+  - type: input
+    id: device
+    attributes: { label: Device and Android version, placeholder: "Samsung Galaxy S7, Android 8.0" }
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [SMS app, Sending queue, REST API, Web panel, Webhooks, Telegram bot, Persistent link, USSD, Calls, SIM / eSIM, Users & keys, Backup, Other]
+  - type: textarea
+    id: steps
+    attributes: { label: Steps to reproduce, placeholder: "1. ...\n2. ...\n3. ..." }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: Expected vs actual behaviour }
+    validations: { required: true }
+  - type: textarea
+    id: logs
+    attributes: { label: Logs, description: "Web panel → Log (remove phone numbers and message texts).", render: text }

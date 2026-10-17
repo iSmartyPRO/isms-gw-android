@@ -1,0 +1,7 @@
+-keep class fi.iki.elonen.** { *; }
+-dontwarn fi.iki.elonen.**
+-keepattributes *Annotation*, InnerClasses
+-keepclassmembers class app.simgate.data.** { *; }
+-keep,includedescriptorclasses class app.simgate.**$$serializer { *; }
+-keepclassmembers class app.simgate.** { *** Companion; }
+-keepclasseswithmembers class app.simgate.** { kotlinx.serialization.KSerializer serializer(...); }

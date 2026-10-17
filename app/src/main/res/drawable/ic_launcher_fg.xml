@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from branding/icon.svg -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp" android:viewportWidth="1024" android:viewportHeight="1024">
+    <group android:pivotX="512" android:pivotY="512" android:scaleX="0.62" android:scaleY="0.62" android:translateY="8">
+        <path android:fillType="evenOdd" android:pathData="M368,184 H656 C762,184 840,262 840,368 V584 C840,690 762,768 656,768 H445 Q432,768 421,775 L297,849 Q266,867 271,832 L280,750 C220,719 184,658 184,584 V368 C184,262 262,184 368,184 Z M368,248 C298,248 248,298 248,368 V584 C248,637 275,679 321,697 Q340,705 338,726 L334,755 L398,716 Q417,704 441,704 H656 C726,704 776,654 776,584 V368 C776,298 726,248 656,248 Z"><aapt:attr name="android:fillColor"><gradient android:type="linear" android:startX="192" android:startY="680" android:endX="832" android:endY="320"><item android:offset="0" android:color="#FF00BEF1" /><item android:offset="0.5" android:color="#FF00DDEB" /><item android:offset="1" android:color="#FF12F0C6" /></gradient></aapt:attr></path>
+        <path android:pathData="M334,370 H605 V330 Q605,310 621,324 L709,400 Q725,414 709,428 L621,504 Q605,518 605,498 V458 H334 Q306,458 306,430 V398 Q306,370 334,370 Z"><aapt:attr name="android:fillColor"><gradient android:type="linear" android:startX="192" android:startY="680" android:endX="832" android:endY="320"><item android:offset="0" android:color="#FF00BEF1" /><item android:offset="0.5" android:color="#FF00DDEB" /><item android:offset="1" android:color="#FF12F0C6" /></gradient></aapt:attr></path>
+        <group android:pivotX="512" android:pivotY="496" android:rotation="180">
+            <path android:pathData="M334,370 H605 V330 Q605,310 621,324 L709,400 Q725,414 709,428 L621,504 Q605,518 605,498 V458 H334 Q306,458 306,430 V398 Q306,370 334,370 Z"><aapt:attr name="android:fillColor"><gradient android:type="linear" android:startX="192" android:startY="680" android:endX="832" android:endY="320"><item android:offset="0" android:color="#FF00BEF1" /><item android:offset="0.5" android:color="#FF00DDEB" /><item android:offset="1" android:color="#FF12F0C6" /></gradient></aapt:attr></path>
+        </group>
+    </group>
+</vector>

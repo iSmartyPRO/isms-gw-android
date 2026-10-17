@@ -1,0 +1,91 @@
+name: Release
+
+# Publishes a GitHub Release with a signed APK and AAB when a tag vX.Y.Z is pushed.
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)build, e.g. v1.2.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & publish
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify tag matches version.properties
+        run: |
+          V="$(grep VERSION_MAJOR version.properties | cut -d= -f2).$(grep VERSION_MINOR version.properties | cut -d= -f2).$(grep VERSION_PATCH version.properties | cut -d= -f2)"
+          echo "version.properties: $V, tag: $TAG"
+          test "v$V" = "$TAG" || { echo "::error::Tag $TAG does not match version.properties ($V)"; exit 1; }
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "::warning::No signing secrets — building unsigned artifacts"; exit 0; fi
+          mkdir -p keystore
+          echo "$KEYSTORE_BASE64" | base64 -d > keystore/upload.jks
+          {
+            echo "storeFile=keystore/upload.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > keystore.properties
+
+      - name: Build release APK and AAB
+        run: ./gradlew --no-daemon assembleRelease bundleRelease
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/*.apk dist/
+          cp app/build/outputs/bundle/release/*.aab dist/
+          (cd dist && sha256sum * > SHA256SUMS.txt)
+          ls -la dist
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          awk -v v="$VERSION" '
+            $0 ~ "^## \[" v "\]" {found=1; next}
+            found && /^## \[/ {exit}
+            found {print}
+          ' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "See CHANGELOG.md for details." > notes.md
+          printf '\n---\n**Install:** download `iSMS-GW-%s-release.apk` below. The `.aab` is for Google Play.\n' "$VERSION" >> notes.md
+          cat notes.md
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: iSMS GW ${{ env.VERSION }}
+          body_path: notes.md
+          files: dist/*
+          fail_on_unmatched_files: true
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f keystore/upload.jks keystore.properties

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">SMS Gateway</title>
+  <desc id="desc">Cyan and teal message bubble with two opposing arrows on a transparent background.</desc>
+  <defs>
+    <linearGradient id="brand" x1="192" y1="680" x2="832" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00BEF1"/>
+      <stop offset="0.5" stop-color="#00DDEB"/>
+      <stop offset="1" stop-color="#12F0C6"/>
+    </linearGradient>
+    <path id="arrow" d="M334 370 H605 V330 Q605 310 621 324 L709 400 Q725 414 709 428 L621 504 Q605 518 605 498 V458 H334 Q306 458 306 430 V398 Q306 370 334 370 Z"/>
+  </defs>
+  <g fill="url(#brand)">
+    <path fill-rule="evenodd" d="M368 184 H656 C762 184 840 262 840 368 V584 C840 690 762 768 656 768 H445 Q432 768 421 775 L297 849 Q266 867 271 832 L280 750 C220 719 184 658 184 584 V368 C184 262 262 184 368 184 Z M368 248 C298 248 248 298 248 368 V584 C248 637 275 679 321 697 Q340 705 338 726 L334 755 L398 716 Q417 704 441 704 H656 C726 704 776 654 776 584 V368 C776 298 726 248 656 248 Z"/>
+    <use xlink:href="#arrow"/>
+    <use xlink:href="#arrow" transform="rotate(180 512 496)"/>
+  </g>
+</svg>

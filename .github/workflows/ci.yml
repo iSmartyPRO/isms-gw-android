@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Syntax-check web panel
+        run: |
+          for f in app/src/main/assets/web/*.js; do node -e "new Function(require('fs').readFileSync('$f','utf8'))"; done
+
+      - name: Build debug APK
+        run: ./gradlew --no-daemon assembleDebug lintDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: isms-gw-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 14

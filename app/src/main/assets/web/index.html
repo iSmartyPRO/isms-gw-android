@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="referrer" content="no-referrer">
+<title>iSMS GW</title>
+<script src="theme-init.js?v=3"></script>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="app.css?v=3">
+</head>
+<body>
+<div id="login" class="login hidden">
+  <form class="login-card" id="loginForm" autocomplete="on">
+    <div class="login-top switchers" data-switchers></div>
+    <div class="logo-big"><span class="logo-mark"></span></div>
+    <h1>iSMS GW</h1>
+    <p class="muted" data-i18n="login.subtitle"></p>
+    <label class="field">
+      <span data-i18n="login.username"></span>
+      <input type="text" id="loginUsername" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="32" placeholder="admin">
+    </label>
+    <label class="field">
+      <span data-i18n="login.password"></span>
+      <input type="password" id="loginPassword" name="password" autocomplete="current-password" required>
+    </label>
+    <div id="loginError" class="form-error"></div>
+    <button class="btn primary block" type="submit" data-i18n="login.submit"></button>
+    <p class="muted small" data-i18n="login.hint"></p>
+    <footer class="foot" data-footer></footer>
+  </form>
+</div>
+
+<div id="app" class="layout hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="logo-mark"></span><div><b>iSMS GW</b><small id="brandDevice">—</small></div></div>
+    <nav id="nav"></nav>
+    <div class="sidebar-foot">
+      <a class="me-chip hidden" id="meChip" href="#/profile"></a>
+      <button class="btn ghost block" data-action="logout"><i data-icon="logout"></i><span data-i18n="logout"></span></button>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" data-action="closeNav"></div>
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn mobile-only" data-action="openNav" data-i18n-aria="menu"><i data-icon="menu"></i></button>
+      <h2 id="pageTitle"></h2>
+      <div class="topbar-right"><div class="top-status" id="topStatus"></div><div class="switchers" data-switchers></div></div>
+    </header>
+    <section id="view" class="view"></section>
+    <footer class="foot main-foot" data-footer></footer>
+  </main>
+</div>
+
+<div id="modal" class="modal hidden"><div class="modal-card" id="modalCard"></div></div>
+<div id="toasts" class="toasts"></div>
+<script src="app.js?v=3"></script>
+</body>
+</html>
