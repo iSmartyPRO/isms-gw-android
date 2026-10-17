@@ -9,6 +9,8 @@ Release notes on GitHub are generated from the section of this file that matches
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-17
+
 ### Changed
 - New app icon (adaptive, Android 13+ themed/monochrome, notification icon) and web panel logo.
 - English is now the default language of the app and the web panel; Russian remains available via the flag switcher.
@@ -74,4 +76,5 @@ First public release.
 - English and Russian UI with a flag switcher; light, dark and system themes.
 - Autostart after reboot, CPU/Wi-Fi wake locks.
 
-[Unreleased]: https://github.com/iSmartyPRO/isms-gw-android/commits/main
+[Unreleased]: https://github.com/iSmartyPRO/isms-gw-android/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/iSmartyPRO/isms-gw-android/releases/tag/v1.2.0
