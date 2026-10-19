@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Trust the system CAs plus the GlobalSign Root CA - R6. R6 was added to the Android trust store
+  only in Android 10; older devices (e.g. Android 8/9, common SMS-gateway phones like the Galaxy S7)
+  reject TLS to servers chaining to R6 — such as sms.ismarty.pro — with "Trust anchor for
+  certification path not found". Bundling the public R6 root makes the "SMS server" link work there too.
+
+  cleartextTrafficPermitted stays true: the app runs a local HTTP server and talks http:// on the LAN.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/globalsign_r6" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
