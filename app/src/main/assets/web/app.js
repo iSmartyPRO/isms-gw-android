@@ -56,6 +56,7 @@ const P = {
   key:'<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
   hook:'<path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2"/><path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06"/><path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8"/>',
   cloud:'<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="m9 14 2 2 4-4"/>',
+  globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
   shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
   list:'<path d="M3 12h.01M3 18h.01M3 6h.01M8 12h13M8 18h13M8 6h13"/>',
   settings:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
@@ -314,7 +315,7 @@ const NAV = () => {
   n.push([a ? T('Конфигурация', 'Configuration') : T('Доступ', 'Access')], ['sims', T('SIM-карты', 'SIM cards'), 'sim']);
   if (a || u.canUseApi) n.push(['keys', T('API-ключи', 'API keys'), 'key']);
   if (a) n.push(['users', T('Пользователи', 'Users'), 'users'], ['webhooks', T('Вебхуки', 'Webhooks'), 'hook'], ['remote', T('SMS-сервер', 'SMS server'), 'cloud'],
-    ['telegram', T('Telegram-бот', 'Telegram bot'), 'tg'], ['firewall', T('Файрвол', 'Firewall'), 'shield']);
+    ['telegram', T('Telegram-бот', 'Telegram bot'), 'tg'], ['destinations', T('Фильтр направлений', 'Destination filter'), 'globe'], ['firewall', T('Файрвол', 'Firewall'), 'shield']);
   n.push([T('Система', 'System')]);
   if (a) n.push(['logs', T('Журнал', 'Log'), 'list'], ['settings', T('Настройки', 'Settings'), 'settings']);
   n.push(['profile', T('Профиль', 'Profile'), 'user'], ['docs', T('API документация', 'API docs'), 'book']);
@@ -1241,6 +1242,64 @@ PAGES.telegram = async (v) => {
     v.querySelectorAll('[data-unpair]').forEach(b => b.onclick = async () => { if (await confirmBox(T('Отвязать чат?', 'Unpair chat?'), T('Чат перестанет получать уведомления и управлять шлюзом.', 'The chat will stop receiving notifications and controlling the gateway.'), T('Отвязать', 'Unpair'))) { await DEL('telegram/chats/' + b.dataset.unpair); draw(); } });
   };
   await draw();
+};
+
+PAGES.destinations = async (v) => {
+  const cfg = await GET('settings');
+  const d = Object.assign({ enabled: true, blocklist: [], allowlistOnly: false, allowlist: [], blockShortCodes: false, allowLocal: true, defaultCountryCode: '', trunkPrefix: '' }, (cfg.sending || {}).destinations || {});
+  const lines = (a) => esc((a || []).join('\n'));
+  const PRESETS = [
+    ['africa', T('Африка', 'Africa'), ['+20 # Egypt', '+21 # North Africa', '+22 # West Africa', '+23 # West/Central Africa', '+24 # Central Africa', '+25 # East Africa', '+26 # Southern Africa', '+27 # South Africa', '+290 # Saint Helena', '+291 # Eritrea']],
+    ['sat', T('Спутниковые и межд. сети', 'Satellite & international networks'), ['+870 # Inmarsat', '+871', '+872', '+873', '+874', '+881 # Global mobile satellite', '+882 # International networks', '+883 # International networks', '+979 # International premium rate']],
+    ['premium', T('Платные зоны', 'Premium rate zones'), ['+1900 # US premium', '+44 9 # UK premium', '+7 809 # RU premium']],
+  ];
+  v.innerHTML = `<div class="callout info"><i data-icon="globe"></i><div>${T('Фильтр проверяет каждое исходящее SMS — из API, веб-панели, Telegram, SMS-сервера и приложения — до отправки. Правила — префиксы номеров в международном формате: <span class="tag">+2</span> (вся Африка), <span class="tag">+44 7700</span>, <span class="tag">+1 202 555 0147</span>. Чёрный список всегда приоритетнее. Текст после <span class="tag">#</span> — комментарий.', 'Every outgoing SMS — from the API, web panel, Telegram, SMS server and the app — is checked before sending. Rules are number prefixes in international format: <span class="tag">+2</span> (all of Africa), <span class="tag">+44 7700</span>, <span class="tag">+1 202 555 0147</span>. The blocklist always wins. Text after <span class="tag">#</span> is a comment.')}</div></div>
+  <div class="grid g2">
+    <div class="card"><h3><i data-icon="ban"></i>${T('Запрещённые направления', 'Blocked destinations')}</h3>
+      <div class="opt"><div class="t"><b>${T('Фильтр направлений включён', 'Destination filter enabled')}</b><small>${T('Выключение снимает все ограничения', 'Turning it off removes all restrictions')}</small></div>${sw('dEn', d.enabled)}</div>
+      <label class="field" style="margin-top:12px"><span>${T('Чёрный список (по одному на строку)', 'Blocklist (one per line)')}</span><textarea id="dBl" rows="8" placeholder="+2&#10;+88">${lines(d.blocklist)}</textarea></label>
+      <div class="field"><span>${T('Быстро добавить', 'Quick add')}</span><div class="row">${PRESETS.map(([k, l]) => `<button type="button" class="chip-btn" data-preset="${k}"><i data-icon="plus"></i>${esc(l)}</button>`).join('')}</div></div>
+      <div class="opt"><div class="t"><b>${T('Блокировать короткие и платные номера', 'Block short and premium codes')}</b><small>${T('Номера из 3–6 цифр (сервисные, подписки)', '3–6 digit numbers (services, subscriptions)')}</small></div>${sw('dShort', d.blockShortCodes)}</div>
+    </div>
+    <div class="card"><h3><i data-icon="check"></i>${T('Разрешённые направления', 'Allowed destinations')}</h3>
+      <div class="opt"><div class="t"><b>${T('Только белый список', 'Allowlist only')}</b><small>${T('SMS уходят только на перечисленные коды и номера', 'SMS go only to the listed codes and numbers')}</small></div>${sw('dAo', d.allowlistOnly)}</div>
+      <label class="field" style="margin-top:12px"><span>${T('Белый список (по одному на строку)', 'Allowlist (one per line)')}</span><textarea id="dAl" rows="5" placeholder="+44&#10;+33 6">${lines(d.allowlist)}</textarea></label>
+      <div class="grid g2" style="gap:12px">
+        <label class="field"><span>${T('Код страны для местных номеров', 'Country code for local numbers')}</span><input id="dCc" value="${esc(d.defaultCountryCode)}" placeholder="44" inputmode="numeric"><small>${T('Номер 07700… станет +447700…', '07700… becomes +447700…')}</small></label>
+        <label class="field"><span>${T('Местный префикс', 'Trunk prefix')}</span><input id="dTp" value="${esc(d.trunkPrefix)}" placeholder="0" inputmode="numeric"><small>${T('Отбрасывается: 0 (EU/UK), 8 (RU)', 'Dropped: 0 (EU/UK), 8 (RU)')}</small></label>
+      </div>
+      <div class="opt"><div class="t"><b>${T('Разрешать номера без международного кода', 'Allow numbers without an international code')}</b><small>${T('Если код страны не задан', 'When no country code is set')}</small></div>${sw('dLoc', d.allowLocal)}</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3><i data-icon="globe"></i>${T('Проверить номер', 'Check a number')}</h3>
+    <div class="row"><input id="dChk" class="grow" placeholder="+234 803 123 4567"><button class="btn" id="dChkBtn">${T('Проверить', 'Check')}</button></div>
+    <div id="dChkOut" style="margin-top:12px"></div>
+  </div>
+  <div style="margin:16px 0"><div class="form-error" id="dErr"></div><button class="btn primary" id="dSave"><i data-icon="check"></i>${T('Сохранить правила', 'Save rules')}</button></div>`;
+  hydrateIcons(v);
+  const split = (t) => t.split('\n').map(x => x.trim()).filter(Boolean);
+  v.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => {
+    const p = PRESETS.find(x => x[0] === b.dataset.preset); const ta = $('#dBl'); const cur = split(ta.value);
+    const have = new Set(cur.map(x => x.split('#')[0].trim()));
+    ta.value = cur.concat(p[2].filter(x => !have.has(x.split('#')[0].trim()))).join('\n');
+    toast(T('Добавлено — не забудьте сохранить', 'Added — remember to save'));
+  });
+  $('#dChkBtn').onclick = async () => {
+    const phone = $('#dChk').value.trim(); if (!phone) return;
+    try {
+      const r = await POST('destinations/check', { phone });
+      $('#dChkOut').innerHTML = `<div class="callout ${r.allowed ? 'info' : ''}"><i data-icon="${r.allowed ? 'check' : 'ban'}"></i><div><b>${r.allowed ? T('Разрешено', 'Allowed') : T('Заблокировано', 'Blocked')}</b> · <span class="mono">${esc(r.normalized)}</span><br><span class="small">${esc(r.reason)}${r.rule ? ' — <span class="tag">' + esc(r.rule) + '</span>' : ''}</span></div></div>`;
+      hydrateIcons($('#dChkOut'));
+    } catch (e) { toast(e.message, true); }
+  };
+  $('#dSave').onclick = async () => {
+    $('#dErr').textContent = '';
+    try {
+      await PUT('settings', { destinations: { enabled: $('#dEn').checked, blocklist: split($('#dBl').value), allowlistOnly: $('#dAo').checked, allowlist: split($('#dAl').value),
+        blockShortCodes: $('#dShort').checked, allowLocal: $('#dLoc').checked, defaultCountryCode: $('#dCc').value.trim(), trunkPrefix: $('#dTp').value.trim() } });
+      toast(T('Правила фильтра сохранены', 'Filter rules saved'));
+    } catch (e) { $('#dErr').textContent = e.message; }
+  };
 };
 
 PAGES.firewall = async (v) => {

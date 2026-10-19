@@ -27,6 +27,7 @@ import app.simgate.sms.SendException
 import app.simgate.sms.SimManager
 import app.simgate.sms.SmsSender
 import app.simgate.sms.SmsStore
+import app.simgate.sms.Destinations
 import app.simgate.sms.SimInfo
 import app.simgate.sms.SimMemory
 import app.simgate.sms.UssdService
@@ -421,7 +422,7 @@ class GatewayServer(private val ctx: Context, port: Int) : NanoHTTPD(port) {
         val me = requireUser(r)
         val isAdmin = me.isAdmin
         // Configuration sections are admin-only.
-        val adminSections = setOf("settings", "webhooks", "remote", "telegram", "firewall", "logs", "backup", "restore")
+        val adminSections = setOf("settings", "webhooks", "remote", "telegram", "firewall", "logs", "backup", "restore", "destinations")
         if (s.firstOrNull() in adminSections) adminOnly(me)
         if (s.firstOrNull() == "users") return usersApi(r, s, me)
 
@@ -493,6 +494,9 @@ class GatewayServer(private val ctx: Context, port: Int) : NanoHTTPD(port) {
                 ConfigStore.update { c -> c.copy(users = c.users.map { u -> u.copy(sims = u.sims - id) }, apiKeys = c.apiKeys.map { k -> k.copy(sims = k.sims - id) }) }
                 Http.json(enc(SimManager.list()))
             }
+
+            // --- destination filter ---
+            s == listOf("destinations", "check") && m == "POST" -> Http.json(enc(Destinations.check(r.requireStr("phone"))))
 
             // --- USSD ---
             s == listOf("ussd") && m == "GET" -> {
@@ -783,7 +787,20 @@ class GatewayServer(private val ctx: Context, port: Int) : NanoHTTPD(port) {
             r.str("theme")?.takeIf { it in setOf("system", "light", "dark") }?.let { n = n.copy(theme = it) }
             b["sending"]?.let {
                 val sc = json.decodeFromJsonElement<SendingConfig>(it)
-                n = n.copy(sending = sc.copy(delayMs = sc.delayMs.coerceIn(0, 60_000), maxRetries = sc.maxRetries.coerceIn(0, 10), maxPerMinute = sc.maxPerMinute.coerceIn(0, 600)))
+                // Keep the destination filter when the client does not send it.
+                val dest = if (it.jsonObject.containsKey("destinations")) sc.destinations else n.sending.destinations
+                n = n.copy(sending = sc.copy(delayMs = sc.delayMs.coerceIn(0, 60_000), maxRetries = sc.maxRetries.coerceIn(0, 10), maxPerMinute = sc.maxPerMinute.coerceIn(0, 600), destinations = dest))
+            }
+            b["destinations"]?.let {
+                val d = json.decodeFromJsonElement<app.simgate.data.DestinationFilter>(it)
+                (d.blocklist + d.allowlist).forEach { rule -> if (!Destinations.isValidRule(rule)) throw ApiError(400, t("Некорректное правило: $rule (пример: +44 7700)", "Invalid rule: $rule (example: +44 7700)")) }
+                if (d.defaultCountryCode.isNotBlank() && !Regex("^\\+?[0-9]{1,4}$").matches(d.defaultCountryCode.trim())) throw ApiError(400, t("Код страны: 1–4 цифры", "Country code: 1-4 digits"))
+                n = n.copy(sending = n.sending.copy(destinations = d.copy(
+                    blocklist = d.blocklist.map { r -> r.trim() }.filter { r -> r.isNotEmpty() }.distinct().take(500),
+                    allowlist = d.allowlist.map { r -> r.trim() }.filter { r -> r.isNotEmpty() }.distinct().take(500),
+                    defaultCountryCode = d.defaultCountryCode.trim().removePrefix("+"), trunkPrefix = d.trunkPrefix.trim().take(2),
+                )))
+                Log.sec(t("Изменён фильтр направлений", "Destination filter changed"))
             }
             b["receiving"]?.let { n = n.copy(receiving = json.decodeFromJsonElement<ReceivingConfig>(it)) }
             b["storage"]?.let {

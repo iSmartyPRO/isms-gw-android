@@ -31,7 +31,7 @@ jobs:
           for f in app/src/main/assets/web/*.js; do node -e "new Function(require('fs').readFileSync('$f','utf8'))"; done
 
       - name: Build debug APK
-        run: ./gradlew --no-daemon assembleDebug lintDebug
+        run: ./gradlew --no-daemon assembleDebug lintDebug testDebugUnitTest
 
       - uses: actions/upload-artifact@v7
         with:

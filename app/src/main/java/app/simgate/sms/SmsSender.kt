@@ -62,6 +62,7 @@ object SmsSender {
     ): Message {
         if (!SmsStore.isDefaultApp()) throw SendException(t("iSMS GW не назначен SMS-приложением по умолчанию", "iSMS GW is not set as the default SMS app"))
         val p = validatePhone(phone) ?: throw SendException(t("Некорректный номер: $phone", "Invalid number: $phone"))
+        Destinations.enforce(p, source)
         if (text.isEmpty()) throw SendException(t("Пустой текст сообщения", "Message text is empty"))
         if (text.length > 1600) throw SendException(t("Текст слишком длинный (макс. 1600 символов)", "Text is too long (max 1600 characters)"))
         // Explicitly selected SIM: by id or by slot → check that it exists and permissions.
@@ -109,6 +110,8 @@ object SmsSender {
 
     private suspend fun process(m: Message) {
         val cfg = ConfigStore.value.sending
+        // Rules may have changed since the message was queued.
+        try { Destinations.enforce(m.phone, m.source) } catch (e: SendException) { fail(m, e.message ?: "blocked", retry = false); return }
         val sim = try { chooseSim(m.simId, Db.allowedSims(m.id)) } catch (e: SendException) {
             fail(m, e.message ?: t("SIM недоступна", "SIM unavailable"), retry = false); return
         }

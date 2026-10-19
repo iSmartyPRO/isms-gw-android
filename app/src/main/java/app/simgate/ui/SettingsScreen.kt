@@ -39,6 +39,7 @@ import androidx.compose.material.icons.rounded.Sms
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.PhoneMissed
 import androidx.compose.material.icons.rounded.PhoneInTalk
@@ -222,6 +223,11 @@ fun SettingsScreen() {
             SettingRow(Icons.Rounded.SimCard, t("Выбор SIM для API", "SIM selection for API"), simStrategies().firstOrNull { it.first == cfg.sending.strategy }?.second ?: cfg.sending.strategy, C.Emerald, onClick = {
                 dlg = Dlg.Choice(t("Стратегия выбора SIM", "SIM selection strategy"), simStrategies(), cfg.sending.strategy) { v -> ConfigStore.update { it.copy(sending = it.sending.copy(strategy = v)) } }
             })
+            val df = cfg.sending.destinations
+            SettingRow(Icons.Rounded.Public, t("Фильтр направлений", "Destination filter"),
+                if (!df.enabled) t("Выключен — SMS можно отправлять на любые номера", "Off — SMS can be sent to any number")
+                else t("Запрещено: ${df.blocklist.size}", "Blocked: ${df.blocklist.size}") + (if (df.allowlistOnly) t(" • только белый список (${df.allowlist.size})", " • allowlist only (${df.allowlist.size})") else "") +
+                    t(" • настройка — в веб-панели", " • configure in the web panel"), C.Red)
             SettingRow(Icons.Rounded.Timer, t("Пауза между SMS", "Delay between SMS"), t("${cfg.sending.delayMs} мс • до ${cfg.sending.maxPerMinute} SMS/мин", "${cfg.sending.delayMs} ms • up to ${cfg.sending.maxPerMinute} SMS/min"), C.Amber, onClick = {
                 dlg = Dlg.Text(t("Пауза между SMS, мс", "Delay between SMS, ms"), "${cfg.sending.delayMs}", number = true) { v ->
                     v.toLongOrNull()?.let { d -> ConfigStore.update { it.copy(sending = it.sending.copy(delayMs = d.coerceIn(0, 60_000))) } }

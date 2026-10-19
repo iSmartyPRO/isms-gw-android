@@ -47,11 +47,8 @@ Messages never pass through the developer — they only go where *you* send them
 | <img src="docs/screenshots/web/users.png" alt="Users"><br>**Users & SIM access** | <img src="docs/screenshots/web/api-keys.png" alt="API keys"><br>**Scoped API keys** |
 | <img src="docs/screenshots/web/ussd.png" alt="USSD"><br>**USSD** | <img src="docs/screenshots/web/calls.png" alt="Calls"><br>**Calls & click-to-call** |
 | <img src="docs/screenshots/web/telegram.png" alt="Telegram bot"><br>**Telegram bot** | <img src="docs/screenshots/web/firewall.png" alt="Firewall"><br>**Firewall** |
+| <img src="docs/screenshots/web/destinations.png" alt="Destination filter"><br>**Destination filter** | <img src="docs/screenshots/web/login.png" alt="Sign in"><br>**Sign in** |
 | <img src="docs/screenshots/web/settings.png" alt="Settings"><br>**Settings, storage & backup** | <img src="docs/screenshots/web/api-docs.png" alt="API docs"><br>**Built-in API docs** |
-
-<p align="center">
-  <img src="docs/screenshots/web/login.png" alt="Sign in" width="49%">
-</p>
 
 The panel is fully responsive:
 
@@ -83,6 +80,7 @@ The panel is fully responsive:
 |---|---|
 | 📨 **Full SMS app** | Conversations, notifications, quick reply, multi-part SMS, delivery reports — a proper default SMS handler (required by Google Play). |
 | 📶 **Dual-SIM & eSIM** | Every SIM / eSIM profile is tracked by a stable subscription id, so permissions and settings survive slot swaps. Per-SIM labels, colors, send/receive toggles and daily limits. Removed SIMs stay listed as *inactive*. |
+| 🌍 **Destination filter** | Block countries and ranges (e.g. all of Africa `+2…`, satellite `+88…`, premium codes) or allow only listed codes and numbers — enforced for every channel, with a built-in number checker. |
 | 🧠 **Smart routing** | Pick a SIM per message, or a strategy: system default, fixed SIM, round-robin, least used today. Queue with throttling, per-minute limit and retries to avoid carrier bans. |
 | 🌐 **REST API** | Send SMS, track status, poll and acknowledge incoming messages, run USSD, place calls, read SIM memory. |
 | 🖥️ **Web admin panel** | Fast, dependency-free SPA served by the phone. Light / dark / system themes, English & Russian. Configure *everything* from your desktop. |
@@ -102,6 +100,7 @@ Security is a first-class feature, not an afterthought:
 - **Firewall before authentication** — *LAN only* (default), *whitelist only* or *open*; blacklist, IPv4/IPv6 CIDR rules, separate restrictions for the admin panel.
 - **Brute-force protection** — automatic IP bans after repeated failures, per-IP rate limiting, login delay; bans persist across restarts.
 - **Hardened web panel** — PBKDF2-SHA256 passwords, HttpOnly + SameSite=Strict sessions bound to the client IP, CSRF header, strict CSP with no inline scripts, every SMS rendered as escaped text.
+- **Destination filter** blocks unwanted countries, satellite and premium numbers before any SMS leaves the phone.
 - **API keys** are shown once and stored as SHA-256 hashes; scoped (`send`, `read`, `ussd`, `call`), limited to the owner's SIMs and optional IP ranges.
 - **Secrets at rest** (bot tokens, server tokens, webhook secrets, TLS keystore password) are encrypted with a non-exportable **Android Keystore** AES-256 key.
 - **HTTPS** with a certificate generated on the device; its SHA-256 fingerprint is shown in the app for verification.

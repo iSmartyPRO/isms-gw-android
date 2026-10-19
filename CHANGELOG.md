@@ -22,6 +22,10 @@ Release notes on GitHub are generated from the section of this file that matches
 - SIM memory: a second access path through the subscription's SmsManager (works on Samsung firmwares where the
   `content://sms/icc` provider is empty), diagnostics in the log, and **sync** — copy every SMS from the SIM to the
   phone, optionally clearing the SIM (app, web panel, `POST /api/v1/sims/{simId}/messages/sync`).
+- **Destination filter** for outgoing SMS: blocklist of countries/ranges (Africa, satellite and premium presets), optional
+  allowlist-only mode, short-code blocking, local-number normalisation (country code + trunk prefix) and a number checker.
+  Enforced for every channel and re-checked before sending; blocked attempts go to the security log.
+- Unit tests for the destination filter (run in CI).
 - Screenshots gallery in the README.
 
 ### Fixed

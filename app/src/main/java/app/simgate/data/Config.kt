@@ -67,6 +67,26 @@ data class SendingConfig(
     val maxRetries: Int = 2,
     val deliveryReports: Boolean = true,
     val maxPerMinute: Int = 20,
+    val destinations: DestinationFilter = DestinationFilter(),
+)
+
+/** Outgoing SMS destination filter (see sms/Destinations.kt). */
+@Serializable
+data class DestinationFilter(
+    val enabled: Boolean = true,
+    /** Prefixes that are always blocked, e.g. "+2" (Africa), "+88" (satellite / international services). */
+    val blocklist: List<String> = emptyList(),
+    /** When on and not empty, only these prefixes / numbers are allowed. */
+    val allowlistOnly: Boolean = false,
+    val allowlist: List<String> = emptyList(),
+    /** Block 3-6 digit short and premium codes. */
+    val blockShortCodes: Boolean = false,
+    /** Allow numbers written without an international code (when no default country code is set). */
+    val allowLocal: Boolean = true,
+    /** Country code used to interpret local numbers, e.g. "7" or "44" (empty = do not convert). */
+    val defaultCountryCode: String = "",
+    /** National trunk prefix stripped from local numbers before adding the country code, e.g. "8" or "0". */
+    val trunkPrefix: String = "",
 )
 
 /** Data retention periods and auto-cleanup. 0 = unlimited. */
