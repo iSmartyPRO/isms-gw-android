@@ -89,7 +89,7 @@ The panel is fully responsive:
 | 🔌 **Persistent server link** | The phone keeps a WebSocket connection to your server — works behind NAT and on mobile data, no public IP needed. Incoming SMS are re-delivered until acknowledged. |
 | #️⃣ **USSD** | Single-step USSD requests (balance, data left, own number) per SIM, with history and a one-tap *Balance* button. |
 | 📞 **Calls** | Incoming / missed call log and notifications, click-to-call from the web panel or API (voice stays on the phone). |
-| 💾 **SIM memory** | View, copy to phone and delete SMS stored on the SIM card. |
+| 💾 **SIM memory** | View, copy to phone and delete SMS stored on the SIM card; long SMS parts are joined into one message. |
 | 👥 **Users & roles** | Administrator plus users restricted to specific SIMs and permissions (send, read, API, web, USSD, calls). Every user owns their API keys. |
 | 🗄️ **Backup & restore** | Encrypted backup file (AES-256-GCM, PBKDF2) with settings, users, keys and optional history — migrate to another phone in minutes. |
 

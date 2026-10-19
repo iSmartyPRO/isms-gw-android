@@ -160,7 +160,11 @@ fun SimMemoryDialog(sim: SimInfo, onDismiss: () -> Unit) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Column(Modifier.weight(1f)) {
                                     Text(m.address.ifEmpty { "—" }, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                                    Text("#${m.index} · " + (if (m.date > 0) fmtTime(m.date) else "") + " · " + m.status, color = C.Muted, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+                                    Text(m.parts.joinToString(", ") { "#$it" } + " · " + (if (m.date > 0) fmtTime(m.date) else "") + " · " + m.status, color = C.Muted, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+                                    if (m.total > 1) Text(
+                                        if (m.received < m.total) t("Получено ${m.received} из ${m.total} частей", "${m.received} of ${m.total} parts received")
+                                        else t("Длинное SMS · частей: ${m.total}", "Long SMS · ${m.total} parts"),
+                                        color = if (m.received < m.total) C.Amber else C.Muted, fontSize = 11.sp)
                                 }
                                 IconButton(onClick = { scope.launch { withContext(Dispatchers.IO) { SimMemory.copyToPhone(sim, m.index, move = false) }; reload++ } }) {
                                     Icon(Icons.Rounded.Download, t("Скопировать в телефон", "Copy to phone"), tint = C.Emerald)

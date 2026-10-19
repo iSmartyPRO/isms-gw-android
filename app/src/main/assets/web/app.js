@@ -573,6 +573,15 @@ function balanceModal(sim) {
   });
 }
 
+// Long SMS stored on the SIM as several records: "3 parts", or "2 of 3 parts" when some are missing.
+function iccParts(x) {
+  const total = x.total || 1, got = (x.parts || [x.index]).length;
+  if (total < 2) return '';
+  return got < total
+    ? `<span class="pill am" title="${esc(T('Часть фрагментов отсутствует на карте', 'Some parts are missing from the card'))}">${esc(T(`${got} из ${total} частей`, `${got} of ${total} parts`))}</span>`
+    : `<span class="pill mu">${esc(T(`Частей: ${total}`, `${total} parts`))}</span>`;
+}
+
 function iccModal(sim) {
   const adm = isAdmin();
   const ST = { read: [T('прочитано', 'read'), 'mu'], unread: [T('новое', 'unread'), 'in'], sent: [T('отправлено', 'sent'), 'em'], unsent: [T('не отправлено', 'unsent'), 'am'] };
@@ -586,7 +595,7 @@ function iccModal(sim) {
         const sync = adm && list.length ? `<div class="icc-sync"><div class="grow"><b>${T('Синхронизация', 'Sync')}</b><div class="muted small">${T('Перенесите все SMS с карты в переписки телефона. Очистка освобождает память SIM.', 'Copy every SMS from the card into the phone conversations. Clearing frees the SIM memory.')}</div></div>
             <button type="button" class="btn sm" data-sync><i data-icon="copy"></i>${T('Перенести всё', 'Copy all')}</button><button type="button" class="btn danger sm" data-sync-clear><i data-icon="trash"></i>${T('Перенести и очистить SIM', 'Copy all & clear SIM')}</button></div>` : '';
         body.innerHTML = list.length ? sync + `<div class="icc-list">${list.map(x => { const [l, c] = ST[x.status] || [x.status, 'mu']; return `<div class="icc-item" data-idx="${esc(x.index)}">
-            <div class="row"><b class="mono">${esc(x.address || '—')}</b><span class="pill ${c}">${esc(l)}</span><span class="muted small" style="margin-left:auto">#${esc(x.index)} • ${x.date ? fmtDate(x.date) : '—'}</span></div>
+            <div class="row"><b class="mono">${esc(x.address || '—')}</b><span class="pill ${c}">${esc(l)}</span>${iccParts(x)}<span class="muted small" style="margin-left:auto">#${esc((x.parts || [x.index]).join(', #'))} • ${x.date ? fmtDate(x.date) : '—'}</span></div>
             <div class="msg-text">${esc(x.body)}</div>
             ${adm ? `<div class="icc-actions"><button class="btn sm" data-copy-icc><i data-icon="copy"></i>${T('Копировать в телефон', 'Copy to phone')}</button><button class="btn sm" data-move-icc><i data-icon="arrow"></i>${T('Переместить', 'Move')}</button><button class="icon-btn" data-del data-del-icc title="${esc(T('Удалить с SIM', 'Delete from SIM'))}" aria-label="${esc(T('Удалить с SIM', 'Delete from SIM'))}"><i data-icon="trash"></i></button></div>` : ''}</div>`; }).join('')}</div>
           <p class="muted small">${T('«Копировать» добавляет SMS в переписки телефона, «Переместить» — копирует и удаляет с карты.', '“Copy” adds the SMS to the phone conversations, “Move” copies it and removes it from the card.')}</p>`

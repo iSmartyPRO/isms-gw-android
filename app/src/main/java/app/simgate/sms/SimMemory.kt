@@ -18,7 +18,16 @@ data class IccMessage(
     val date: Long,
     /** read | unread | sent | unsent */
     val status: String,
-)
+    /** SIM indexes of every stored part of a long SMS, in order (one element for a regular SMS). */
+    val parts: List<Int> = listOf(index),
+    /** Number of parts the message was sent in; parts.size < total means some parts are missing. */
+    val total: Int = 1,
+) {
+    val received get() = parts.size
+}
+
+/** A stored SIM record with its long-SMS part info (the provider path exposes no PDU). */
+private typealias Raw = Pair<IccMessage, Concat.Part?>
 
 /**
  * SIM card memory (ICC). Two access paths are tried, because support differs between firmwares:
@@ -46,7 +55,7 @@ object SimMemory {
     // ---------------------------------------------------------------- path 1: SmsManager
 
     @Suppress("UNCHECKED_CAST", "DEPRECATION")
-    private fun managerList(mgr: SmsManager): List<IccMessage> {
+    private fun managerList(mgr: SmsManager): List<Raw> {
         val m = SmsManager::class.java.getMethod("getAllMessagesFromIcc")
         val raw = m.invoke(mgr) as? List<SmsMessage?> ?: emptyList()
         return raw.filterNotNull().map { s ->
@@ -56,7 +65,7 @@ object SimMemory {
                 body = s.displayMessageBody ?: s.messageBody.orEmpty(),
                 date = s.timestampMillis,
                 status = statusOf(s.statusOnIcc),
-            )
+            ) to Concat.parse(runCatching { s.pdu }.getOrNull())
         }
     }
 
@@ -74,7 +83,7 @@ object SimMemory {
         if (sim.slot == 1 && !sim.isDefault) add(Uri.parse("content://sms/icc1"))
     }
 
-    private fun providerList(uri: Uri): List<IccMessage> {
+    private fun providerList(uri: Uri): List<Raw> {
         val c = ctx.contentResolver.query(uri, null, null, null, null) ?: error("provider returned no cursor")
         return c.use {
             val iIdx = c.getColumnIndex("index_on_icc"); val iAddr = c.getColumnIndex("address")
@@ -86,7 +95,7 @@ object SimMemory {
                     body = if (iBody >= 0) c.getString(iBody).orEmpty() else "",
                     date = if (iDate >= 0) c.getLong(iDate) else 0,
                     status = if (iSt >= 0) statusOf(c.getInt(iSt)) else "read",
-                ))
+                ) to null)
             }
         }
     }
@@ -100,12 +109,12 @@ object SimMemory {
         val errors = mutableListOf<String>()
         runCatching { SimManager.smsManagerFor(sim.simId) }.getOrNull()?.let { mgr ->
             runCatching { managerList(mgr) }
-                .onSuccess { return Source.Manager(mgr) to it }
+                .onSuccess { return Source.Manager(mgr) to Concat.merge(it) }
                 .onFailure { errors += "SmsManager: " + rootMessage(it) }
         }
         for (u in providerCandidates(sim)) {
             runCatching { providerList(u) }
-                .onSuccess { return Source.Provider(u) to it }
+                .onSuccess { return Source.Provider(u) to Concat.merge(it) }
                 .onFailure { errors += "$u: " + rootMessage(it) }
         }
         val details = errors.joinToString("; ")
@@ -127,16 +136,27 @@ object SimMemory {
 
     fun list(sim: SimInfo): List<IccMessage> = resolve(sim).second.sortedByDescending { it.date }
 
+    /** Deletes the message containing SIM record [index] — every part of a long SMS. */
     fun delete(sim: SimInfo, index: Int): Boolean {
-        val (src, _) = resolve(sim)
-        val ok = runCatching {
+        val (src, items) = resolve(sim)
+        val m = items.firstOrNull { index in it.parts } ?: return false
+        return deleteParts(sim, src, m)
+    }
+
+    private fun deleteParts(sim: SimInfo, src: Source, m: IccMessage): Boolean {
+        val ok = m.parts.map { deleteRecord(src, it) }.all { it }
+        if (ok) Log.i("sms", t("Удалено SMS #${m.index} из памяти «${sim.label}»", "SMS #${m.index} deleted from \"${sim.label}\" memory") +
+            if (m.parts.size > 1) " (${m.parts.size})" else "")
+        return ok
+    }
+
+    private fun deleteRecord(src: Source, index: Int): Boolean {
+        return runCatching {
             when (src) {
                 is Source.Manager -> managerDelete(src.mgr, index)
                 is Source.Provider -> ctx.contentResolver.delete(Uri.withAppendedPath(src.uri, index.toString()), null, null) > 0
             }
         }.getOrElse { Log.w("sms", "SIM delete #$index: " + rootMessage(it)); false }
-        if (ok) Log.i("sms", t("Удалено SMS #$index из памяти «${sim.label}»", "SMS #$index deleted from \"${sim.label}\" memory"))
-        return ok
     }
 
     private fun writeToPhone(sim: SimInfo, m: IccMessage) {
@@ -146,10 +166,10 @@ object SimMemory {
 
     /** Copies one SMS from SIM memory into the phone's conversations (and deletes it from the SIM when move=true). */
     fun copyToPhone(sim: SimInfo, index: Int, move: Boolean): Boolean {
-        val (_, items) = resolve(sim)
-        val m = items.firstOrNull { it.index == index } ?: return false
+        val (src, items) = resolve(sim)
+        val m = items.firstOrNull { index in it.parts } ?: return false
         writeToPhone(sim, m)
-        if (move) delete(sim, index)
+        if (move) deleteParts(sim, src, m)
         return true
     }
 
@@ -157,11 +177,11 @@ object SimMemory {
 
     /** Synchronisation: copies every SMS from the SIM to the phone; with clearSim=true frees the SIM memory afterwards. */
     fun syncToPhone(sim: SimInfo, clearSim: Boolean): SyncResult {
-        val (_, items) = resolve(sim)
+        val (src, items) = resolve(sim)
         var deleted = 0
         items.forEach { m ->
             writeToPhone(sim, m)
-            if (clearSim && delete(sim, m.index)) deleted++
+            if (clearSim && deleteParts(sim, src, m)) deleted++
         }
         Log.i("sms", t("Синхронизация памяти «${sim.label}»: перенесено ${items.size}, удалено с SIM $deleted",
             "SIM memory sync \"${sim.label}\": copied ${items.size}, deleted from SIM $deleted"))

@@ -9,6 +9,14 @@ Release notes on GitHub are generated from the section of this file that matches
 
 ## [Unreleased]
 
+### Added
+- SIM memory joins the parts of long (concatenated) SMS into one message. Each message lists the SIM records it
+  consists of (`parts`) and the number of parts it was sent in (`total`); incomplete messages are marked.
+
+### Changed
+- Deleting, copying, moving and syncing a long SMS from SIM memory now handles all of its parts at once
+  (`DELETE /sims/{simId}/messages/{index}` accepts the index of any part).
+
 ## [1.2.0] - 2026-10-17
 
 ### Changed
