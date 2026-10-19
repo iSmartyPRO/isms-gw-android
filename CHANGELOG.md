@@ -9,6 +9,14 @@ Release notes on GitHub are generated from the section of this file that matches
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-10-19
+
+### Fixed
+- Also trust the **Let's Encrypt** roots (ISRG Root X1 and X2) on older devices whose system trust store
+  predates them (Android < 7.1.1), so SMS-server and webhook TLS to the many self-hosted servers behind
+  Let's Encrypt works there too. Bundled alongside GlobalSign R6; all fingerprints verified against the
+  published SHA-256.
+
 ## [1.3.1] - 2026-10-19
 
 ### Fixed
