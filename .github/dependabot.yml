@@ -1,21 +1,93 @@
+# Dependabot configuration (schema v2).
+# Priority: a stable build on every device with Android 8.0+ (minSdk 26), not the newest library versions.
+#
+# Gradle ecosystem:
+#   - Kotlin plugins (and Kotlin artifacts) are updated together in one PR: "kotlin" group, minor + patch.
+#   - Every other patch update is collected into one PR: "gradle-patch" group.
+#   - Minor updates arrive as separate PRs, one per dependency.
+#   - Major updates are ignored (except the Compose BOM, see below).
+#   - AGP and the Gradle wrapper get patch updates only; minor/major upgrades are done manually.
+#   - Versions that do not build with the current toolchain (AGP 8.10.1, compileSdk 36, Kotlin 2.0.21)
+#     are ignored with the reason next to the rule. Revisit those rules when the toolchain is upgraded.
+#
+# Compatibility rules:
+#   - minSdk stays 26. A library version that requires minSdk > 26 is added to "ignore" with a comment.
+#   - No heavy dependencies: Dependabot only updates what is already declared.
 version: 2
 updates:
-  # Android / Kotlin dependencies: one grouped PR per month, minor and patch updates only.
-  # Major updates (and Kotlin/AGP jumps that need a newer compileSdk) are done manually.
   - package-ecosystem: gradle
     directory: "/"
-    schedule: { interval: monthly }
+    schedule:
+      interval: weekly
     open-pull-requests-limit: 3
+    labels: ["dependencies"]
     groups:
-      gradle-dependencies:
+      # Listed first: a dependency joins the first group that matches it, so Kotlin patches stay here.
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin.*"   # plugins: kotlin.android, kotlin.plugin.compose, kotlin.plugin.serialization
+          - "org.jetbrains.kotlin:*"   # Kotlin artifacts (stdlib, gradle plugin)
+        update-types: ["minor", "patch"]
+      gradle-patch:
         patterns: ["*"]
-        update-types: [minor, patch]
+        update-types: ["patch"]
     ignore:
-      - dependency-name: "*"
+      # --- Major updates -------------------------------------------------------------------------
+      # Every declared dependency is listed instead of "*", so that androidx.compose:compose-bom stays out:
+      # it uses calendar versions (2024.12.01 -> 2026.x), which Dependabot treats as a major update.
+      # Add new dependencies here when they are declared in app/build.gradle.kts.
+      - dependency-name: "org.jetbrains.kotlin*"   # Kotlin plugins and artifacts, kotlinx libraries
         update-types: ["version-update:semver-major"]
+      - dependency-name: "androidx.activity:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "androidx.lifecycle:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "androidx.core:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "androidx.compose.*:*"     # artifacts managed by the BOM
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.nanohttpd:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.squareup.okhttp3:*"   # OkHttp 5 is a major API change
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "junit:*"
+        update-types: ["version-update:semver-major"]
+
+      # --- Toolchain: upgraded manually -----------------------------------------------------------
+      - dependency-name: "com.android.application"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      - dependency-name: "com.android.library"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      - dependency-name: "com.android.tools.build:gradle"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      - dependency-name: "gradle-wrapper"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+
+      # --- Versions that need a newer toolchain ---------------------------------------------------
+      # Kotlin 2.3 needs R8 8.13.19 (AGP 8.13.2+); Kotlin 2.4 needs R8 9.1.29 (AGP 9.x).
+      # AGP 8.10.1 supports Kotlin up to 2.2.x. Lift together with the AGP upgrade.
+      - dependency-name: "org.jetbrains.kotlin.*"
+        versions: [">= 2.3.0"]
+      - dependency-name: "org.jetbrains.kotlin:*"
+        versions: [">= 2.3.0"]
+      # core / core-ktx 1.19+ require compileSdk 37 and AGP 9.1.0 (aar-metadata). 1.18.0 still needs only
+      # compileSdk 36 and AGP 8.9.1; its minSdk is 23, compatible with minSdk 26.
+      - dependency-name: "androidx.core:*"
+        versions: [">= 1.19.0"]
+      # kotlinx-serialization 1.9 is built with Kotlin 2.2, 1.10+ with Kotlin 2.3: the Kotlin 2.0 compiler
+      # cannot read their metadata. Change to ">= 1.10.0" after Kotlin 2.2 is merged.
+      - dependency-name: "org.jetbrains.kotlinx:kotlinx-serialization-*"
+        versions: [">= 1.9.0"]
+      # kotlinx-coroutines 1.11 is built with Kotlin 2.2.20. Remove this rule after Kotlin 2.2 is merged.
+      - dependency-name: "org.jetbrains.kotlinx:kotlinx-coroutines-*"
+        versions: [">= 1.11.0"]
+
   - package-ecosystem: github-actions
     directory: "/"
-    schedule: { interval: monthly }
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    labels: ["dependencies"]
     groups:
       github-actions:
         patterns: ["*"]
