@@ -9,6 +9,9 @@ Release notes on GitHub are generated from the section of this file that matches
 
 ## [Unreleased]
 
+### Changed
+- Build: Kotlin JVM target is now set via the `kotlin { compilerOptions { } }` DSL instead of the deprecated `android.kotlinOptions` (prepares for Kotlin 2.2).
+
 ## [1.2.0] - 2026-10-17
 
 ### Changed
