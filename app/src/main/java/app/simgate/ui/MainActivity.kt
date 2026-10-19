@@ -36,13 +36,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import app.simgate.net.ConnectPayload
+import app.simgate.net.Failed
+import app.simgate.net.Parsed
+import app.simgate.net.parseConnectPayload
 import app.simgate.sms.SmsStore
 
 class MainActivity : ComponentActivity() {
     /** Number to open a conversation for (from a notification or an sms: link). */
     private var openPhone by mutableStateOf<String?>(null)
+    /** Connection payload from an ismsgw://connect link, awaiting confirmation. */
+    private var pendingConnect by mutableStateOf<ConnectPayload?>(null)
     private var tick by mutableIntStateOf(0)
 
     private val roleLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -77,6 +84,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     AppRoot(openPhone) { openPhone = null }
                 }
+                pendingConnect?.let { p -> ConnectConfirmDialog(p) { pendingConnect = null } }
             }
         }
     }
@@ -90,6 +98,13 @@ class MainActivity : ComponentActivity() {
         i ?: return
         i.getStringExtra(EXTRA_PHONE)?.let { openPhone = it; return }
         val data = i.data
+        if (data?.scheme.equals("ismsgw", ignoreCase = true)) {
+            when (val r = parseConnectPayload(i.dataString ?: data.toString())) {
+                is Parsed -> pendingConnect = r.payload
+                is Failed -> Toast.makeText(this, r.error.message, Toast.LENGTH_LONG).show()
+            }
+            return
+        }
         if ((i.action == Intent.ACTION_SENDTO || i.action == Intent.ACTION_SEND || i.action == Intent.ACTION_VIEW) && data != null) {
             val num = data.schemeSpecificPart?.substringBefore('?')?.split(',')?.firstOrNull()
             if (!num.isNullOrBlank()) openPhone = num

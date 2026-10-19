@@ -1,10 +1,13 @@
 package app.simgate.ui
 
 import app.simgate.data.t
+import android.content.ClipboardManager
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -16,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -49,6 +53,8 @@ import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.ContentPaste
+import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.text.font.FontWeight
@@ -78,6 +84,10 @@ import app.simgate.BuildConfig
 import app.simgate.data.ConfigStore
 import app.simgate.data.Crypto
 import app.simgate.data.Log
+import app.simgate.net.ConnectPayload
+import app.simgate.net.Failed
+import app.simgate.net.Parsed
+import app.simgate.net.parseConnectPayload
 import app.simgate.net.TelegramBot
 import app.simgate.server.Sessions
 import app.simgate.server.Tls
@@ -89,6 +99,7 @@ private sealed interface Dlg {
     data class Choice(val title: String, val options: List<Pair<String, String>>, val current: String, val onSave: (String) -> Unit) : Dlg
     data object Password : Dlg
     data object Remote : Dlg
+    data class ConnectConfirm(val payload: ConnectPayload) : Dlg
     data object Telegram : Dlg
     data object Privacy : Dlg
 }
@@ -113,6 +124,16 @@ fun SettingsScreen() {
     var dlg by remember { mutableStateOf<Dlg?>(null) }
     var keysOpen by remember { mutableStateOf(false) }
     fun restart() { Gateway.restartServerLater() }
+    // QR scanner for the "SMS server" dialog: returns the raw text, we parse and confirm it here.
+    val scanLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        val data = res.data ?: return@rememberLauncherForActivityResult
+        if (data.getBooleanExtra(QrScannerActivity.EXTRA_MANUAL, false)) return@rememberLauncherForActivityResult // user chose to type
+        val text = data.getStringExtra(QrScannerActivity.EXTRA_RESULT).orEmpty()
+        when (val r = parseConnectPayload(text)) {
+            is Parsed -> dlg = Dlg.ConnectConfirm(r.payload)
+            is Failed -> Toast.makeText(ctx, r.error.message, Toast.LENGTH_LONG).show()
+        }
+    }
     if (keysOpen) { ApiKeysScreen { keysOpen = false }; return }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
@@ -308,6 +329,11 @@ fun SettingsScreen() {
             var en by remember { mutableStateOf(cfg.remote.enabled) }
             var url by remember { mutableStateOf(cfg.remote.url) }
             var token by remember { mutableStateOf(cfg.remote.token) }
+            // Offer to fill the fields from a connection link in the clipboard — only on tap, never automatically.
+            val clipPayload = remember {
+                val clip = ctx.getSystemService(ClipboardManager::class.java)?.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(ctx)?.toString()
+                clip?.let { (parseConnectPayload(it) as? Parsed)?.payload }
+            }
             SimpleDialog(t("Подключение к SMS-серверу", "SMS server connection"), onDismiss = { dlg = null }, onOk = {
                 if (en && !Regex("^(wss?|https?)://.+", RegexOption.IGNORE_CASE).matches(url.trim())) {
                     Toast.makeText(ctx, t("URL: wss://ваш-сервер/ws", "URL: wss://your-server/ws"), Toast.LENGTH_SHORT).show(); return@SimpleDialog
@@ -315,13 +341,24 @@ fun SettingsScreen() {
                 ConfigStore.update { it.copy(remote = it.remote.copy(enabled = en, url = url.trim(), token = token.trim())) }
                 Gateway.restartRemote(); dlg = null
             }) {
+                Btn(t("Сканировать QR-код", "Scan QR code"), { scanLauncher.launch(QrScannerActivity.intent(ctx)) }, Modifier.fillMaxWidth())
+                if (clipPayload != null) {
+                    Row(Modifier.fillMaxWidth().padding(top = 8.dp).clickable { dlg = Dlg.ConnectConfirm(clipPayload) }
+                        .background(C.Indigo.copy(alpha = 0.12f), RoundedCornerShape(12.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.ContentPaste, null, tint = C.Indigo, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(t("Найдены данные подключения — подставить?", "Connection data found — use it?"), color = C.Indigo, fontSize = 12.sp)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
                 ToggleRow(Icons.Rounded.CloudSync, t("Включить", "Enable"), null, en, C.Indigo) { en = it }
                 OutlinedTextField(url, { url = it }, label = { Text("URL (wss://…)") }, singleLine = true, colors = fieldColors(), shape = RoundedCornerShape(14.dp))
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(token, { token = it }, label = { Text(t("Токен устройства", "Device token")) }, singleLine = true, colors = fieldColors(), shape = RoundedCornerShape(14.dp))
-                Text(t("Телефон сам подключается к серверу — работает через мобильный интернет и NAT.", "The phone connects to the server itself — works over mobile data and NAT."), color = C.Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                Text(t("Отсканируйте QR-код из мастера сервера — адрес и токен заполнятся сами. Телефон сам подключается к серверу: работает через мобильный интернет и NAT.", "Scan the QR code from the server wizard — the address and token are filled in automatically. The phone connects to the server itself: works over mobile data and NAT."), color = C.Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
             }
         }
+        is Dlg.ConnectConfirm -> ConnectConfirmDialog(d.payload) { dlg = null }
         Dlg.Telegram -> {
             val t = cfg.telegram
             var en by remember { mutableStateOf(t.enabled) }

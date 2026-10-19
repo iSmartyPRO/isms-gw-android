@@ -1149,6 +1149,38 @@ PAGES.webhooks = async (v) => {
   await draw();
 };
 
+// Parses a "connect to SMS server" link/QR text (mirrors net/ConnectLink.kt): the connect link,
+// an App Links URL with the data after "#", or the legacy two-line "URL\ntoken" QR.
+function parseConnect(text) {
+  const s = (text || '').trim();
+  if (!s) return { error: T('Пустая ссылка', 'Empty link') };
+  const TOKEN = /^smsgw_[A-Za-z0-9]{8}_[A-Za-z0-9]{32}$/;
+  const URLRE = /^(wss|ws|https|http):\/\/.+/i;
+  const dec = (x) => { try { return decodeURIComponent(x); } catch (e) { return x; } };
+  const params = (q) => { const m = {}; (q || '').split('&').forEach((p) => { if (!p) return; const i = p.indexOf('='); const k = dec(i < 0 ? p : p.slice(0, i)); const val = i < 0 ? '' : dec(p.slice(i + 1)); if (k) m[k] = val; }); return m; };
+  const build = (url, token, name) => {
+    url = (url || '').trim(); token = (token || '').trim();
+    if (!url || !token) return { error: T('Не удалось распознать данные подключения', 'Could not read the connection data') };
+    if (!URLRE.test(url)) return { error: T('Неверный адрес сервера', 'Invalid server address') };
+    const scheme = url.split('://')[0].toLowerCase();
+    name = ((name || '').trim().slice(0, 120)) || null;
+    return { url, token, name, insecure: scheme === 'ws' || scheme === 'http', knownToken: TOKEN.test(token) };
+  };
+  if (/^ismsgw:\/\//i.test(s)) {
+    const p = params(s.split('?')[1] || '');
+    if (p.v && parseInt(p.v, 10) !== 1) return { error: T('Обновите приложение', 'Please update the app') };
+    return build(p.url, p.token, p.name);
+  }
+  if (/^https?:\/\//i.test(s) && s.indexOf('#') >= 0 && /url=|token=/i.test(s.split('#')[1] || '')) {
+    const p = params(s.split('#')[1] || '');
+    if (p.v && parseInt(p.v, 10) !== 1) return { error: T('Обновите приложение', 'Please update the app') };
+    return build(p.url, p.token, p.name);
+  }
+  const parts = s.split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return { error: T('Не удалось распознать данные подключения', 'Could not read the connection data') };
+  return build(parts[0], parts[1], null);
+}
+
 PAGES.remote = async (v) => {
   const draw = async () => {
     const r = await GET('remote');
@@ -1158,7 +1190,9 @@ PAGES.remote = async (v) => {
         <p class="muted" style="margin-top:-6px">${T('Телефон сам устанавливает постоянное WebSocket-соединение с вашим сервером: работает через мобильный интернет и NAT, не требует белого IP и открытых портов.', 'The phone itself keeps a persistent WebSocket connection to your server: it works over mobile internet and NAT, and needs no public IP or open ports.')}</p>
         ${r.error ? `<div class="callout"><i data-icon="alert"></i><div>${esc(r.error)}</div></div>` : ''}
         <div class="opt"><div class="t"><b>${T('Включить подключение', 'Enable connection')}</b></div>${sw('ren', r.enabled)}</div>
-        <label class="field" style="margin-top:12px"><span>${T('URL сервера', 'Server URL')}</span><input id="rurl" value="${esc(r.url)}" placeholder="wss://sms.example.com/device"></label>
+        <label class="field" style="margin-top:12px"><span>${T('Вставить ссылку подключения', 'Paste connection link')}</span><input id="rlink" placeholder="ismsgw://connect?v=1&url=…&token=…"><small>${T('Вставьте ссылку или текст QR-кода из мастера сервера — адрес и токен заполнятся сами', 'Paste the link or QR text from the server wizard — the address and token fill in automatically')}</small></label>
+        <div class="muted small" id="rlinkmsg" style="margin:-4px 0 8px"></div>
+        <label class="field"><span>${T('URL сервера', 'Server URL')}</span><input id="rurl" value="${esc(r.url)}" placeholder="wss://sms.example.com/device"></label>
         <label class="field"><span>${T('Токен устройства', 'Device token')}</span><input id="rtok" value="${esc(r.token)}" placeholder="${T('выдаётся вашим сервером', 'issued by your server')}"><small>${T('Передаётся в заголовке Authorization: Bearer', 'Sent in the Authorization: Bearer header')}</small></label>
         <div class="form-error" id="rerr"></div>
         <button class="btn primary" id="rsave"><i data-icon="check"></i>${T('Сохранить и переподключиться', 'Save and reconnect')}</button>
@@ -1177,6 +1211,22 @@ PAGES.remote = async (v) => {
         <p class="muted small">${T('Входящие SMS повторно отправляются при переподключении, пока сервер не подтвердит их через', 'Incoming SMS are re-sent after reconnecting until the server confirms them with')} <span class="tag">ack_event</span> — ${T('сообщения не теряются при обрыве связи.', 'no messages are lost when the connection drops.')}</p>
       </div></div>`;
     hydrateIcons(v);
+    const applyLink = () => {
+      const msg = $('#rlinkmsg'); const text = $('#rlink').value;
+      if (!text.trim()) { msg.textContent = ''; return; }
+      const p = parseConnect(text);
+      if (p.error) { msg.style.color = 'var(--red)'; msg.textContent = p.error; return; }
+      // Same rules as the app: fill the fields, never apply without the Save (confirmation) below.
+      $('#rurl').value = p.url; $('#rtok').value = p.token; $('#ren').checked = true;
+      const warns = [];
+      if (p.insecure) warns.push(T('соединение не шифруется', 'the connection is not encrypted'));
+      if (!p.knownToken) warns.push(T('необычный токен', 'unusual token'));
+      msg.style.color = warns.length ? 'var(--amber)' : 'var(--em)';
+      msg.textContent = (p.name ? T('Имя устройства: ', 'Device name: ') + p.name + '. ' : '')
+        + (warns.length ? T('Внимание: ', 'Warning: ') + warns.join(', ') + '. ' : '')
+        + T('Проверьте адрес и нажмите «Сохранить».', 'Check the address and press “Save”.');
+    };
+    $('#rlink').oninput = applyLink;
     $('#rsave').onclick = async () => {
       try { await PUT('remote', { enabled: $('#ren').checked, url: $('#rurl').value.trim(), token: $('#rtok').value.trim() }); toast(T('Сохранено', 'Saved')); setTimeout(draw, 1500); }
       catch (e) { $('#rerr').textContent = e.message; }
