@@ -341,7 +341,7 @@ tbody tr:hover{background:var(--row-hover)}
 .progress.full>div{background:var(--red)}
 
 /* SIM card on its plastic carrier: punch-out mini/micro/nano outline, gold chip in the centre */
-.bank{--c:#34d399;--c2:#0b6b4c;position:relative;overflow:hidden;border-radius:18px;padding:14px 16px 12px;aspect-ratio:1.586;max-height:240px;width:100%;
+.bank{--c:#34d399;--c2:#0b6b4c;position:relative;overflow:hidden;border-radius:12px;padding:12px 14px 10px;aspect-ratio:85.6/54;width:100%;max-width:300px;margin:0 auto;
   display:grid;grid-template-rows:auto 1fr auto;gap:8px;color:#fff;isolation:isolate;
   background:linear-gradient(140deg,var(--c) 0%,var(--c2) 100%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(0,0,0,.2)}
@@ -355,8 +355,8 @@ tbody tr:hover{background:var(--row-hover)}
 .bank.black{background:linear-gradient(140deg,#090c13 0%,#1a2030 50%,#394256 100%);color:#f3f5fa}
 .bank-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-width:0}
 .bank-title{min-width:0}
-.bank-label{font-size:15px;font-weight:700;letter-spacing:-.01em;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bank-sub{font-size:10.5px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bank-label{font-size:14px;font-weight:700;letter-spacing:-.01em;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bank-sub{font-size:10px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bank-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;flex:none;max-width:48%}
 .bank-tag,.bank-slot{font-family:var(--font);font-size:8.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.2);white-space:nowrap}
 .bank.ink-dark .bank-tag,.bank.ink-dark .bank-slot{background:rgba(11,18,32,.12)}
@@ -369,14 +369,14 @@ tbody tr:hover{background:var(--row-hover)}
 .sim-punch.esim .bank-chip{width:46%;top:44%;box-shadow:0 0 0 4px rgba(255,255,255,.12),0 0 18px rgba(255,255,255,.18),0 2px 5px rgba(0,0,0,.3)}
 .esim-mark{position:absolute;left:0;right:0;bottom:4%;text-align:center;font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;opacity:.75}
 .bank-info{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
-.bank-num{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;opacity:.95;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bank-icc{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;opacity:.75;white-space:nowrap}
+.bank-num{font-family:var(--mono);font-size:11px;letter-spacing:.04em;opacity:.95;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bank-icc{font-family:var(--mono);font-size:9px;letter-spacing:.1em;opacity:.75;white-space:nowrap}
 .bank-slot{margin-top:2px;background:rgba(255,255,255,.28)}
 .bank-brand{display:flex;align-items:center;gap:5px;justify-self:end;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
 .bank-brand .logo-mark{width:13px;height:13px;border-radius:4px;box-shadow:none}
 .bank.inactive{filter:grayscale(.85) brightness(.92);opacity:.8}
 .bank.inactive .bank-slot{background:rgba(0,0,0,.28);color:#fff}
-.bank.compact{aspect-ratio:1.586;min-height:0}
+.bank.compact{aspect-ratio:85.6/54;min-height:0}  /* ISO ID-1 carrier: 85.6 × 54 mm */
 .sim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:16px}
 .sim-tile{display:flex;flex-direction:column;padding:16px}
 .sim-note{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12.5px;color:var(--muted)}
