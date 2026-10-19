@@ -208,7 +208,7 @@ const isAdmin = () => !!ME && ME.role === 'admin';
 async function loadMe() { const r = await GET('me'); ME = r.user || null; MY_SIMS = Array.isArray(r.sims) ? r.sims : []; return r; }
 
 const HEX = /^#[0-9a-f]{6}$/i;
-const PALETTE = ['#34D399', '#818CF8', '#38BDF8', '#FBBF24', '#F472B6', '#A78BFA', '#FB923C', '#2DD4BF'];
+const PALETTE = ['#34D399', '#818CF8', '#38BDF8', '#FBBF24', '#F472B6', '#A78BFA', '#FB923C', '#2DD4BF', '#111827'];
 const hash = (s) => { let h = 0; for (const ch of String(s ?? '')) h = (h * 31 + ch.codePointAt(0)) | 0; return Math.abs(h); };
 /** Validated SIM color (server data goes into style attributes — never trust it blindly). */
 const simColor = (s) => (s && HEX.test(s.color || '')) ? s.color : PALETTE[hash(s && s.simId) % PALETTE.length];
@@ -414,13 +414,25 @@ const usageBar = (used, lim) => used == null ? '' : `<div class="usage"><div cla
   ${lim ? `<div class="progress${used >= lim ? ' full' : used / lim > .8 ? ' warn' : ''}"><div style="width:${Math.min(100, used / lim * 100).toFixed(1)}%"></div></div>` : ''}</div>`;
 /** Bank-card style SIM visual. Colors are validated by simColor(). */
 const bankCard = (s, compact) => {
-  const c = simColor(s), darkInk = luminance(c) > .4, c2 = shade(c, darkInk ? -.3 : -.5);
-  return `<div class="bank${darkInk ? ' ink-dark' : ''}${s.active === false ? ' inactive' : ''}${compact ? ' compact' : ''}" style="--c:${c};--c2:${c2}">
-    <div class="bank-top"><span class="bank-chip" aria-hidden="true"></span><span class="bank-tags">${s.isDefault ? `<span class="bank-tag">${T('по умолчанию', 'default')}</span>` : ''}<span class="bank-tag">${s.embedded ? 'eSIM' : T('Физическая SIM', 'Physical SIM')}</span></span></div>
-    <div class="bank-label">${esc(simName(s))}</div>
-    <div class="bank-sub">${esc(s.carrier || s.displayName || '—')}${s.country ? ' • ' + esc(String(s.country).toUpperCase()) : ''}</div>
-    <div class="bank-num">${esc(s.number || T('номер не сообщён оператором', 'number not provided by carrier'))}</div>
-    <div class="bank-bottom"><span class="bank-icc">•••• ${esc(s.iccTail || '····')}</span><span class="bank-slot">${s.active !== false && s.slot ? 'SIM ' + esc(s.slot) : T('Неактивна', 'Inactive')}</span></div>
+  const c = simColor(s), darkInk = luminance(c) > .4, black = luminance(c) < .05;
+  // Black cards get a graphite metallic gradient instead of a darker shade of black.
+  const c2 = black ? '#3a4356' : shade(c, darkInk ? -.3 : -.5);
+  const slot = s.active !== false && s.slot ? 'SIM ' + esc(s.slot) : T('Неактивна', 'Inactive');
+  // A SIM card on its plastic carrier ("рубашка"): punch-out outline with micro/nano break lines and the chip in the middle.
+  return `<div class="bank${darkInk ? ' ink-dark' : ''}${black ? ' black' : ''}${s.active === false ? ' inactive' : ''}${compact ? ' compact' : ''}" style="--c:${c};--c2:${c2}">
+    <div class="bank-head">
+      <div class="bank-title"><div class="bank-label">${esc(simName(s))}</div><div class="bank-sub">${esc(s.carrier || s.displayName || '—')}${s.country ? ' • ' + esc(String(s.country).toUpperCase()) : ''}</div></div>
+      <span class="bank-tags">${s.isDefault ? `<span class="bank-tag">${T('по умолчанию', 'default')}</span>` : ''}<span class="bank-tag">${s.embedded ? 'eSIM' : T('Физическая', 'Physical')}</span></span>
+    </div>
+    <div class="bank-body">
+      <div class="sim-punch${s.embedded ? ' esim' : ''}" aria-hidden="true"><span class="bank-chip"></span>${s.embedded ? `<span class="esim-mark">${T('встроенная', 'embedded')}</span>` : ''}</div>
+      <div class="bank-info">
+        <div class="bank-num">${esc(s.number || T('номер не сообщён', 'number not provided'))}</div>
+        <div class="bank-icc">ICCID •••• ${esc(s.iccTail || '····')}</div>
+        <span class="bank-slot">${slot}</span>
+      </div>
+    </div>
+    <div class="bank-brand"><span class="logo-mark"></span>iSMS GW</div>
   </div>`;
 };
 const simMini = (st) => (sim) => `<div class="card sim-dash">${bankCard(sim, true)}
@@ -429,15 +441,15 @@ const simMini = (st) => (sim) => `<div class="card sim-dash">${bankCard(sim, tru
 
 function msgTable(list, actions, ctx = {}) {
   if (!list.length) return `<div class="empty"><i data-icon="inbox"></i><div>${T('Сообщений пока нет', 'No messages yet')}</div></div>`;
-  return `<div class="table-wrap"><table><thead><tr><th></th><th>${T('Номер', 'Number')}</th><th>${T('Текст', 'Text')}</th><th>SIM</th><th>${T('Статус', 'Status')}</th><th>${T('Время', 'Time')}</th>${actions ? '<th></th>' : ''}</tr></thead><tbody>
+  return `<div class="table-wrap"><table class="msg-table"><thead><tr><th></th><th>${T('Номер', 'Number')}</th><th>${T('Текст', 'Text')}</th><th>SIM</th><th>${T('Статус', 'Status')}</th><th>${T('Время', 'Time')}</th>${actions ? '<th></th>' : ''}</tr></thead><tbody>
   ${list.map(m => `<tr>
-    <td><span class="dir ${m.direction === 'in' ? 'tint-in' : 'tint-em'}" title="${m.direction === 'in' ? T('Входящее', 'Incoming') : T('Исходящее', 'Outgoing')}"><i data-icon="${m.direction === 'in' ? 'in' : 'out'}"></i></span></td>
-    <td class="mono">${esc(m.phone)}<div class="muted small">#${esc(m.id)}${m.source ? ' • ' + esc(m.source) : ''}${ctx.users && m.owner ? ' • @' + esc((ctx.users.find(u => u.id === m.owner) || { username: m.owner }).username) : ''}</div></td>
-    <td><div class="msg-text">${esc(m.text)}</div>${m.error ? `<div class="small" style="color:var(--red)">${esc(m.error)}</div>` : ''}</td>
-    <td>${(() => { const s = m.simId != null && m.simId >= 0 ? simById(ctx.sims, m.simId) : null; return s ? simChip(s) : m.sim ? 'SIM ' + esc(m.sim) : '—'; })()}</td>
-    <td>${statusPill(m.status)}${m.parts > 1 ? `<div class="muted small">${m.parts} ${T(plural(m.parts, 'часть', 'части', 'частей'), 'parts')}</div>` : ''}</td>
-    <td class="muted small">${fmtDate(m.createdAt)}</td>
-    ${actions ? `<td style="white-space:nowrap">${m.direction === 'out' && (m.status === 'failed') && (isAdmin() || (ME && ME.canSend)) ? `<button class="icon-btn" title="${T('Повторить', 'Retry')}" data-retry="${esc(m.id)}"><i data-icon="retry"></i></button> ` : ''}<button class="icon-btn" title="${T('Удалить', 'Delete')}" data-del="${esc(m.id)}"><i data-icon="trash"></i></button></td>` : ''}
+    <td class="c-dir"><span class="dir ${m.direction === 'in' ? 'tint-in' : 'tint-em'}" title="${m.direction === 'in' ? T('Входящее', 'Incoming') : T('Исходящее', 'Outgoing')}"><i data-icon="${m.direction === 'in' ? 'in' : 'out'}"></i></span></td>
+    <td class="c-num mono">${esc(m.phone)}<div class="muted small">#${esc(m.id)}${m.source ? ' • ' + esc(m.source) : ''}${ctx.users && m.owner ? ' • @' + esc((ctx.users.find(u => u.id === m.owner) || { username: m.owner }).username) : ''}</div></td>
+    <td class="c-text"><div class="msg-text">${esc(m.text)}</div>${m.error ? `<div class="small" style="color:var(--red)">${esc(m.error)}</div>` : ''}</td>
+    <td class="c-sim">${(() => { const s = m.simId != null && m.simId >= 0 ? simById(ctx.sims, m.simId) : null; return s ? simChip(s) : m.sim ? 'SIM ' + esc(m.sim) : '—'; })()}</td>
+    <td class="c-st">${statusPill(m.status)}${m.parts > 1 ? `<div class="muted small">${m.parts} ${T(plural(m.parts, 'часть', 'части', 'частей'), 'parts')}</div>` : ''}</td>
+    <td class="c-time muted small">${fmtDate(m.createdAt)}</td>
+    ${actions ? `<td class="c-act" style="white-space:nowrap">${m.direction === 'out' && (m.status === 'failed') && (isAdmin() || (ME && ME.canSend)) ? `<button class="icon-btn" title="${T('Повторить', 'Retry')}" data-retry="${esc(m.id)}"><i data-icon="retry"></i></button> ` : ''}<button class="icon-btn" title="${T('Удалить', 'Delete')}" data-del="${esc(m.id)}"><i data-icon="trash"></i></button></td>` : ''}
   </tr>`).join('')}</tbody></table></div>`;
 }
 
@@ -570,7 +582,9 @@ function iccModal(sim) {
       try {
         const r = await GET('sims/' + encodeURIComponent(sim.simId) + '/icc');
         const list = r.messages || [];
-        body.innerHTML = list.length ? `<div class="icc-list">${list.map(x => { const [l, c] = ST[x.status] || [x.status, 'mu']; return `<div class="icc-item" data-idx="${esc(x.index)}">
+        const sync = adm && list.length ? `<div class="icc-sync"><div class="grow"><b>${T('Синхронизация', 'Sync')}</b><div class="muted small">${T('Перенесите все SMS с карты в переписки телефона. Очистка освобождает память SIM.', 'Copy every SMS from the card into the phone conversations. Clearing frees the SIM memory.')}</div></div>
+            <button type="button" class="btn sm" data-sync><i data-icon="copy"></i>${T('Перенести всё', 'Copy all')}</button><button type="button" class="btn danger sm" data-sync-clear><i data-icon="trash"></i>${T('Перенести и очистить SIM', 'Copy all & clear SIM')}</button></div>` : '';
+        body.innerHTML = list.length ? sync + `<div class="icc-list">${list.map(x => { const [l, c] = ST[x.status] || [x.status, 'mu']; return `<div class="icc-item" data-idx="${esc(x.index)}">
             <div class="row"><b class="mono">${esc(x.address || '—')}</b><span class="pill ${c}">${esc(l)}</span><span class="muted small" style="margin-left:auto">#${esc(x.index)} • ${x.date ? fmtDate(x.date) : '—'}</span></div>
             <div class="msg-text">${esc(x.body)}</div>
             ${adm ? `<div class="icc-actions"><button class="btn sm" data-copy-icc><i data-icon="copy"></i>${T('Копировать в телефон', 'Copy to phone')}</button><button class="btn sm" data-move-icc><i data-icon="arrow"></i>${T('Переместить', 'Move')}</button><button class="icon-btn" data-del data-del-icc title="${esc(T('Удалить с SIM', 'Delete from SIM'))}" aria-label="${esc(T('Удалить с SIM', 'Delete from SIM'))}"><i data-icon="trash"></i></button></div>` : ''}</div>`; }).join('')}</div>
@@ -582,6 +596,17 @@ function iccModal(sim) {
       hydrateIcons(body);
     };
     m.addEventListener('click', async (e) => {
+      const sy = e.target.closest('[data-sync]'), sc = e.target.closest('[data-sync-clear]');
+      if (sy || sc) {
+        if (sc && !sc.dataset.armed) { sc.dataset.armed = '1'; sc.innerHTML = esc(T('Нажмите ещё раз — SMS будут удалены с карты', 'Click again — SMS will be deleted from the card')); return; }
+        (sy || sc).disabled = true;
+        try {
+          const r = await POST('sims/' + encodeURIComponent(sim.simId) + '/icc/sync', { clearSim: !!sc });
+          toast(T(`Перенесено в телефон: ${r.copied}`, `Copied to phone: ${r.copied}`) + (sc ? T(`, удалено с SIM: ${r.deleted}`, `, deleted from SIM: ${r.deleted}`) : ''));
+          load();
+        } catch (err) { toast(err.message, true); (sy || sc).disabled = false; }
+        return;
+      }
       const item = e.target.closest('.icc-item'); if (!item) return;
       const idx = item.dataset.idx, base = 'sims/' + encodeURIComponent(sim.simId) + '/icc/' + encodeURIComponent(idx);
       const cp = e.target.closest('[data-copy-icc]'), mv = e.target.closest('[data-move-icc]'), dl = e.target.closest('[data-del-icc]');

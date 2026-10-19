@@ -136,6 +136,7 @@ fun UssdDialog(sim: SimInfo, initial: String, askSave: Boolean, onDismiss: () ->
 /** SIM card memory: SMS list, move to phone, delete. */
 @Composable
 fun SimMemoryDialog(sim: SimInfo, onDismiss: () -> Unit) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
     var reload by remember { mutableIntStateOf(0) }
     var items by remember { mutableStateOf<List<IccMessage>?>(null) }
@@ -175,5 +176,14 @@ fun SimMemoryDialog(sim: SimInfo, onDismiss: () -> Unit) {
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(t("Закрыть", "Close"), color = C.Muted) } },
+        dismissButton = {
+            if (!items.isNullOrEmpty()) TextButton(onClick = {
+                scope.launch {
+                    val res = withContext(Dispatchers.IO) { runCatching { SimMemory.syncToPhone(sim, clearSim = false) }.getOrNull() }
+                    if (res != null) android.widget.Toast.makeText(ctx, t("Перенесено в телефон: ${res.copied}", "Copied to phone: ${res.copied}"), android.widget.Toast.LENGTH_SHORT).show()
+                    reload++
+                }
+            }) { Text(t("Перенести всё", "Copy all"), color = C.Emerald, fontWeight = FontWeight.SemiBold) }
+        },
     )
 }

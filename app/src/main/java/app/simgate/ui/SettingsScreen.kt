@@ -116,8 +116,8 @@ fun SettingsScreen() {
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
         Spacer(Modifier.height(20.dp))
-        Text("Настройки", style = MaterialTheme.typography.headlineMedium)
-        Text("Базовые параметры. Полная настройка — в веб-панели.", color = C.Muted, fontSize = 13.sp)
+        Text(t("Настройки", "Settings"), style = MaterialTheme.typography.headlineMedium)
+        Text(t("Базовые параметры. Полная настройка — в веб-панели.", "Basic settings. Full configuration is in the web panel."), color = C.Muted, fontSize = 13.sp)
 
         SectionTitle(t("Оформление", "Appearance"))
         Card {
@@ -137,7 +137,7 @@ fun SettingsScreen() {
         SectionTitle(t("Устройство", "Device"))
         Card(padding = 8) {
             SettingRow(Icons.Rounded.Badge, t("Имя устройства", "Device name"), cfg.deviceName, onClick = {
-                dlg = Dlg.Text("Имя устройства", cfg.deviceName) { v -> ConfigStore.update { it.copy(deviceName = v.take(40).ifBlank { it.deviceName }) } }
+                dlg = Dlg.Text(t("Имя устройства", "Device name"), cfg.deviceName) { v -> ConfigStore.update { it.copy(deviceName = v.take(40).ifBlank { it.deviceName }) } }
             })
             ToggleRow(Icons.Rounded.RestartAlt, t("Автозапуск после перезагрузки", "Autostart after reboot"), t("Восстанавливать работу шлюза", "Restore the gateway after reboot"), cfg.autostart, C.Sky) { v -> ConfigStore.update { it.copy(autostart = v) } }
             ToggleRow(Icons.Rounded.BatteryChargingFull, t("Не засыпать", "Keep awake"), t("Удерживать CPU и Wi-Fi активными, пока шлюз работает", "Keep CPU and Wi-Fi awake while the gateway runs"), cfg.keepAwake, C.Amber) { v ->
@@ -163,7 +163,7 @@ fun SettingsScreen() {
                 ConfigStore.update { it.copy(server = it.server.copy(enabled = v)) }; restart()
             }
             SettingRow(Icons.Rounded.Numbers, t("Порт", "Port"), "${cfg.server.port}", C.Sky, onClick = {
-                dlg = Dlg.Text("Порт (1024–65535)", "${cfg.server.port}", number = true) { v ->
+                dlg = Dlg.Text(t("Порт (1024–65535)", "Port (1024–65535)"), "${cfg.server.port}", number = true) { v ->
                     val p = v.toIntOrNull()
                     if (p == null || p !in 1024..65535) Toast.makeText(ctx, t("Недопустимый порт", "Invalid port"), Toast.LENGTH_SHORT).show()
                     else { ConfigStore.update { it.copy(server = it.server.copy(port = p)) }; restart() }
@@ -223,7 +223,7 @@ fun SettingsScreen() {
                 dlg = Dlg.Choice(t("Стратегия выбора SIM", "SIM selection strategy"), simStrategies(), cfg.sending.strategy) { v -> ConfigStore.update { it.copy(sending = it.sending.copy(strategy = v)) } }
             })
             SettingRow(Icons.Rounded.Timer, t("Пауза между SMS", "Delay between SMS"), t("${cfg.sending.delayMs} мс • до ${cfg.sending.maxPerMinute} SMS/мин", "${cfg.sending.delayMs} ms • up to ${cfg.sending.maxPerMinute} SMS/min"), C.Amber, onClick = {
-                dlg = Dlg.Text("Пауза между SMS, мс", "${cfg.sending.delayMs}", number = true) { v ->
+                dlg = Dlg.Text(t("Пауза между SMS, мс", "Delay between SMS, ms"), "${cfg.sending.delayMs}", number = true) { v ->
                     v.toLongOrNull()?.let { d -> ConfigStore.update { it.copy(sending = it.sending.copy(delayMs = d.coerceIn(0, 60_000))) } }
                 }
             })
@@ -293,9 +293,9 @@ fun SettingsScreen() {
                     }
                 }
             }) {
-                OutlinedTextField(p1, { p1 = it }, label = { Text("Пароль") }, singleLine = true, visualTransformation = PasswordVisualTransformation(), colors = fieldColors(), shape = RoundedCornerShape(14.dp))
+                OutlinedTextField(p1, { p1 = it }, label = { Text(t("Пароль", "Password")) }, singleLine = true, visualTransformation = PasswordVisualTransformation(), colors = fieldColors(), shape = RoundedCornerShape(14.dp))
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(p2, { p2 = it }, label = { Text("Повторите") }, singleLine = true, visualTransformation = PasswordVisualTransformation(), colors = fieldColors(), shape = RoundedCornerShape(14.dp))
+                OutlinedTextField(p2, { p2 = it }, label = { Text(t("Повторите", "Repeat")) }, singleLine = true, visualTransformation = PasswordVisualTransformation(), colors = fieldColors(), shape = RoundedCornerShape(14.dp))
             }
         }
         Dlg.Remote -> {
@@ -312,8 +312,8 @@ fun SettingsScreen() {
                 ToggleRow(Icons.Rounded.CloudSync, t("Включить", "Enable"), null, en, C.Indigo) { en = it }
                 OutlinedTextField(url, { url = it }, label = { Text("URL (wss://…)") }, singleLine = true, colors = fieldColors(), shape = RoundedCornerShape(14.dp))
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(token, { token = it }, label = { Text("Токен устройства") }, singleLine = true, colors = fieldColors(), shape = RoundedCornerShape(14.dp))
-                Text("Телефон сам подключается к серверу — работает через мобильный интернет и NAT.", color = C.Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                OutlinedTextField(token, { token = it }, label = { Text(t("Токен устройства", "Device token")) }, singleLine = true, colors = fieldColors(), shape = RoundedCornerShape(14.dp))
+                Text(t("Телефон сам подключается к серверу — работает через мобильный интернет и NAT.", "The phone connects to the server itself — works over mobile data and NAT."), color = C.Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
             }
         }
         Dlg.Telegram -> {
@@ -333,18 +333,18 @@ fun SettingsScreen() {
             }) {
                 Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
                     ToggleRow(Icons.AutoMirrored.Rounded.Send, t("Включить бота", "Enable bot"), null, en, C.Sky) { en = it }
-                    OutlinedTextField(token, { token = it }, label = { Text("Токен от @BotFather") }, singleLine = true, colors = fieldColors(), shape = RoundedCornerShape(14.dp))
-                    Text("1. Создайте бота у @BotFather → /newbot\n2. Вставьте токен и сохраните\n3. Отправьте боту /start ${t.pairingCode}", color = C.Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp))
+                    OutlinedTextField(token, { token = it }, label = { Text(t("Токен от @BotFather", "Token from @BotFather")) }, singleLine = true, colors = fieldColors(), shape = RoundedCornerShape(14.dp))
+                    Text(t("1. Создайте бота у @BotFather → /newbot\n2. Вставьте токен и сохраните\n3. Отправьте боту /start ${t.pairingCode}", "1. Create a bot with @BotFather → /newbot\n2. Paste the token and save\n3. Send the bot /start ${t.pairingCode}"), color = C.Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp))
                     ToggleRow(Icons.Rounded.Sms, t("Входящие SMS", "Incoming SMS"), t("Пересылать в Telegram", "Forward to Telegram"), inc, C.Emerald) { inc = it }
                     ToggleRow(Icons.Rounded.Info, t("Ошибки отправки", "Send errors"), null, fail, C.Red) { fail = it }
                     ToggleRow(Icons.Rounded.Info, t("Доставка", "Delivery"), t("Уведомлять о каждом доставленном SMS", "Notify about every delivered SMS"), del, C.Indigo) { del = it }
                     ToggleRow(Icons.Rounded.Security, t("Отправка SMS из бота", "Sending SMS from the bot"), t("Команды /send и ответы", "/send commands and replies"), send, C.Amber) { send = it }
                     if (t.chats.isNotEmpty()) {
-                        Text("Привязанные чаты", fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+                        Text(t("Привязанные чаты", "Linked chats"), fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
                         t.chats.forEach { c ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(c.name, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                                TextButton(onClick = { ConfigStore.update { it.copy(telegram = it.telegram.copy(chats = it.telegram.chats.filter { x -> x.id != c.id })) } }) { Text("Отвязать", color = C.Red) }
+                                TextButton(onClick = { ConfigStore.update { it.copy(telegram = it.telegram.copy(chats = it.telegram.chats.filter { x -> x.id != c.id })) } }) { Text(t("Отвязать", "Unlink"), color = C.Red) }
                             }
                         }
                     }
@@ -387,6 +387,6 @@ private fun SimpleDialog(title: String, onDismiss: () -> Unit, onOk: (() -> Unit
         title = { Text(title) },
         text = { Column { content() } },
         confirmButton = { if (onOk != null) TextButton(onClick = onOk) { Text(okText, color = C.Emerald) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Закрыть", color = C.Muted) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(t("Закрыть", "Close"), color = C.Muted) } },
     )
 }

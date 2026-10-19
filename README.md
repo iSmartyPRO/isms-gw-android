@@ -32,6 +32,51 @@ Most SMS gateways either lock you into a paid cloud or expose your phone to the 
 through a polished web panel, a REST API, webhooks, a Telegram bot, or a persistent connection to your own server.
 Messages never pass through the developer — they only go where *you* send them.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/web/dashboard-dark.png" alt="Web panel — dashboard (dark)" width="100%">
+</p>
+
+### Web admin panel
+
+| | |
+|:---:|:---:|
+| <img src="docs/screenshots/web/dashboard-light.png" alt="Dashboard, light theme"><br>**Dashboard** · light theme | <img src="docs/screenshots/web/sims.png" alt="SIM cards"><br>**SIM cards & eSIM** |
+| <img src="docs/screenshots/web/messages.png" alt="Messages"><br>**Messages** | <img src="docs/screenshots/web/send.png" alt="Send SMS"><br>**Send SMS** |
+| <img src="docs/screenshots/web/users.png" alt="Users"><br>**Users & SIM access** | <img src="docs/screenshots/web/api-keys.png" alt="API keys"><br>**Scoped API keys** |
+| <img src="docs/screenshots/web/ussd.png" alt="USSD"><br>**USSD** | <img src="docs/screenshots/web/calls.png" alt="Calls"><br>**Calls & click-to-call** |
+| <img src="docs/screenshots/web/telegram.png" alt="Telegram bot"><br>**Telegram bot** | <img src="docs/screenshots/web/firewall.png" alt="Firewall"><br>**Firewall** |
+| <img src="docs/screenshots/web/settings.png" alt="Settings"><br>**Settings, storage & backup** | <img src="docs/screenshots/web/api-docs.png" alt="API docs"><br>**Built-in API docs** |
+
+<p align="center">
+  <img src="docs/screenshots/web/login.png" alt="Sign in" width="49%">
+</p>
+
+The panel is fully responsive:
+
+<p align="center">
+  <img src="docs/screenshots/web/mobile-dashboard.png" alt="Mobile dashboard" width="24%">
+  <img src="docs/screenshots/web/mobile-sims.png" alt="Mobile SIM cards" width="24%">
+  <img src="docs/screenshots/web/mobile-messages.png" alt="Mobile messages" width="24%">
+</p>
+
+### Android app
+
+<p align="center">
+  <img src="docs/screenshots/android/home-light.png" alt="Gateway, light" width="24%">
+  <img src="docs/screenshots/android/home-sims-light.png" alt="SIM cards and integrations, light" width="24%">
+  <img src="docs/screenshots/android/settings-light.png" alt="Settings, light" width="24%">
+  <img src="docs/screenshots/android/api-keys-light.png" alt="API keys" width="24%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/android/home-dark.png" alt="Gateway, dark" width="24%">
+  <img src="docs/screenshots/android/home-sims-dark.png" alt="SIM cards and integrations, dark" width="24%">
+  <img src="docs/screenshots/android/settings-dark.png" alt="Settings, dark" width="24%">
+</p>
+
+<sub>Web screenshots use demo data. Personal data in the Android screenshots is blurred.</sub>
+
 ## Features
 
 | | |
@@ -104,6 +149,7 @@ Base URL: `http(s)://<phone-ip>:<port>/api/v1` · Auth: `Authorization: Bearer <
 | `GET` | `/sims` | `read` | SIM cards and eSIM profiles available to the key |
 | `GET` | `/sims/{simId}/messages` | `read` | SMS stored in SIM memory |
 | `DELETE` | `/sims/{simId}/messages/{index}` | `send` | Delete an SMS from SIM memory |
+| `POST` | `/sims/{simId}/messages/sync` | `send` | Copy all SIM messages to the phone `{ "clearSim": true }` |
 | `POST` | `/ussd` | `ussd` | Run a USSD request `{ "code": "*100#", "simId": 1 }` |
 | `GET` | `/ussd/{id}` | `ussd` | USSD result |
 | `GET` / `POST` | `/calls` | `call` | Call log / click-to-call `{ "to": "+1555…", "simId": 1 }` |
@@ -142,7 +188,7 @@ A reference WebSocket server for the persistent-link mode lives in [`examples/sm
 │       │   └── ui/          Jetpack Compose UI
 │       └── assets/web/      Web admin panel (vanilla JS, no CDN)
 ├── branding/                Logo sources (SVG)
-├── docs/                    Release guide, Google Play guide, privacy policy
+├── docs/                    Release guide, Google Play guide, privacy policy, screenshots
 ├── examples/                Reference SMS server (Python)
 ├── scripts/                 Release helper
 ├── .github/                 CI and release workflows, issue & PR templates

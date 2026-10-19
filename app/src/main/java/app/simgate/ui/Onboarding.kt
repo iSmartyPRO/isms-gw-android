@@ -54,7 +54,7 @@ fun Onboarding(isDefault: Boolean, missing: List<String>, onRequestRole: () -> U
             androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(app.simgate.R.drawable.ic_launcher_fg), null, Modifier.fillMaxSize())
         }
         Spacer(Modifier.height(24.dp))
-        Text("Добро пожаловать в iSMS GW", style = MaterialTheme.typography.headlineMedium)
+        Text(t("Добро пожаловать в iSMS GW", "Welcome to iSMS GW"), style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(8.dp))
         Text(
             t("SMS-приложение со встроенным шлюзом: отправка и приём SMS через веб-панель, REST API, вебхуки и постоянное подключение к вашему серверу. Поддерживаются обе SIM-карты.", "An SMS app with a built-in gateway: send and receive SMS via the web panel, REST API, webhooks, Telegram and a persistent connection to your server. Both SIM cards are supported."),
@@ -76,7 +76,7 @@ fun Onboarding(isDefault: Boolean, missing: List<String>, onRequestRole: () -> U
                 IconBadge(Icons.Rounded.Shield, C.Emerald, 36)
                 Spacer(Modifier.width(12.dp))
                 Column {
-                    Text("Ваши данные остаются у вас", fontWeight = FontWeight.SemiBold)
+                    Text(t("Ваши данные остаются у вас", "Your data stays with you"), fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(4.dp))
                     Text(
                         t("iSMS GW не имеет облака и не передаёт SMS разработчику. Сообщения уходят только на адреса, которые вы сами укажете (вебхуки, ваш SMS-сервер, ваш Telegram-бот), или читаются клиентами с вашим API-ключом. Шлюз выключен, пока вы его не запустите.", "iSMS GW has no cloud and never sends SMS to the developer. Messages go only to destinations you configure (webhooks, your SMS server, your Telegram bot) or are read by clients with your API key. The gateway stays off until you start it."),

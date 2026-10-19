@@ -1,8 +1,21 @@
 version: 2
 updates:
+  # Android / Kotlin dependencies: one grouped PR per month, minor and patch updates only.
+  # Major updates (and Kotlin/AGP jumps that need a newer compileSdk) are done manually.
   - package-ecosystem: gradle
     directory: "/"
     schedule: { interval: monthly }
+    open-pull-requests-limit: 3
+    groups:
+      gradle-dependencies:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule: { interval: monthly }
+    groups:
+      github-actions:
+        patterns: ["*"]

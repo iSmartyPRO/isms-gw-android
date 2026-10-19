@@ -135,12 +135,12 @@ fun HomeScreen() {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconBadge(Icons.Rounded.Lock, C.Amber, 36); Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("Пароль панели (временный)", color = C.Muted, fontSize = 12.sp)
+                            Text(t("Пароль панели (временный)", "Panel password (temporary)"), color = C.Muted, fontSize = 12.sp)
                             Text(cfg.admin.initialPassword, fontFamily = FontFamily.Monospace, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                         }
                         IconButton(onClick = { copy(ctx, t("Пароль", "Password"), cfg.admin.initialPassword) }) { Icon(Icons.Rounded.ContentCopy, null, tint = C.Muted) }
                     }
-                    Text("Смените пароль в настройках или в веб-панели.", color = C.Amber, fontSize = 12.sp)
+                    Text(t("Смените пароль в настройках или в веб-панели.", "Change the password in Settings or in the web panel."), color = C.Amber, fontSize = 12.sp)
                 }
             }
         }
@@ -159,7 +159,7 @@ fun HomeScreen() {
 
         SectionTitle(t("SIM-карты", "SIM cards"))
         val sims = data?.second.orEmpty()
-        if (sims.isEmpty()) Card { Text("Активные SIM-карты не найдены", color = C.Muted) }
+        if (sims.isEmpty()) Card { Text(t("Активные SIM-карты не найдены", "No active SIM cards found"), color = C.Muted) }
         sims.forEach { s ->
             SimCardView(s, st?.perSimToday?.get(s.simId) ?: 0)
             Spacer(Modifier.height(10.dp))
@@ -193,8 +193,8 @@ fun HomeScreen() {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconBadge(Icons.Rounded.BatteryAlert, C.Amber, 36); Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("Оптимизация батареи включена", fontWeight = FontWeight.SemiBold)
-                        Text("Система может усыплять шлюз. Отключите оптимизацию для iSMS GW (на Samsung также: Батарея → Спящие приложения).", color = C.Muted, fontSize = 12.sp)
+                        Text(t("Оптимизация батареи включена", "Battery optimization is on"), fontWeight = FontWeight.SemiBold)
+                        Text(t("Система может усыплять шлюз. Отключите оптимизацию для iSMS GW (на Samsung также: Батарея → Спящие приложения).", "The system may put the gateway to sleep. Disable optimization for iSMS GW (on Samsung also: Battery → Sleeping apps)."), color = C.Muted, fontSize = 12.sp)
                     }
                 }
             }
@@ -265,7 +265,7 @@ private fun SimCardView(s: SimInfo, sentToday: Int) {
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text("$sentToday${if (s.dailyLimit > 0) " / ${s.dailyLimit}" else ""}", fontWeight = FontWeight.SemiBold)
-                Text("сегодня", color = C.Muted, fontSize = 11.sp)
+                Text(t("сегодня", "today"), color = C.Muted, fontSize = 11.sp)
             }
         }
         Spacer(Modifier.height(10.dp))

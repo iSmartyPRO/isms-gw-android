@@ -15,9 +15,19 @@ Release notes on GitHub are generated from the section of this file that matches
 - New app icon (adaptive, Android 13+ themed/monochrome, notification icon) and web panel logo.
 - English is now the default language of the app and the web panel; Russian remains available via the flag switcher.
 - `GET /sims` now includes the saved `balanceCode` of each SIM.
+- SIM cards are shown on their plastic carrier — punch-out mini/micro/nano outline with the chip in the centre; new black (graphite) card color.
+- The messages table turns into cards on phones.
+
+### Added
+- SIM memory: a second access path through the subscription's SmsManager (works on Samsung firmwares where the
+  `content://sms/icc` provider is empty), diagnostics in the log, and **sync** — copy every SMS from the SIM to the
+  phone, optionally clearing the SIM (app, web panel, `POST /api/v1/sims/{simId}/messages/sync`).
+- Screenshots gallery in the README.
 
 ### Fixed
 - The *Phone permission* row in Settings now disappears immediately after the permission is granted.
+- Several Android screens (Messages, Settings, welcome screen) still showed Russian text in English mode.
+- The gateway notification is only updated when the notification permission is granted (Android 13+).
 
 ## [1.1.1] - 2026-10-17
 

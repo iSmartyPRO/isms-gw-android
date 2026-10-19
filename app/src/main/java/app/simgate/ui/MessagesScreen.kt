@@ -102,11 +102,11 @@ fun ConversationsScreen(onOpen: (String) -> Unit) {
         Column(Modifier.fillMaxSize()) {
             Column(Modifier.padding(horizontal = 16.dp)) {
                 Spacer(Modifier.height(20.dp))
-                Text("Сообщения", style = MaterialTheme.typography.headlineMedium)
+                Text(t("Сообщения", "Messages"), style = MaterialTheme.typography.headlineMedium)
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
                     query, { query = it }, Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(16.dp),
-                    placeholder = { Text("Поиск по номеру или тексту") }, leadingIcon = { Icon(Icons.Rounded.Search, null, tint = C.Muted) },
+                    placeholder = { Text(t("Поиск по номеру или тексту", "Search by number or text")) }, leadingIcon = { Icon(Icons.Rounded.Search, null, tint = C.Muted) },
                     colors = fieldColors(),
                 )
                 Spacer(Modifier.height(8.dp))
@@ -147,7 +147,7 @@ fun ConversationsScreen(onOpen: (String) -> Unit) {
         }
         ExtendedFloatingActionButton(
             onClick = { newDialog = true }, containerColor = C.Emerald, contentColor = C.OnAccent,
-            icon = { Icon(Icons.Rounded.Edit, null) }, text = { Text("Новое", fontWeight = FontWeight.SemiBold) },
+            icon = { Icon(Icons.Rounded.Edit, null) }, text = { Text(t("Новое", "New"), fontWeight = FontWeight.SemiBold) },
             modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp), shape = RoundedCornerShape(18.dp),
         )
     }
@@ -156,15 +156,15 @@ fun ConversationsScreen(onOpen: (String) -> Unit) {
         var phone by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { newDialog = false }, containerColor = C.Surface,
-            title = { Text("Новое сообщение") },
+            title = { Text(t("Новое сообщение", "New message")) },
             text = {
-                OutlinedTextField(phone, { phone = it }, singleLine = true, label = { Text("Номер получателя") },
+                OutlinedTextField(phone, { phone = it }, singleLine = true, label = { Text(t("Номер получателя", "Recipient number")) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), colors = fieldColors(), shape = RoundedCornerShape(14.dp))
             },
             confirmButton = {
-                TextButton(onClick = { SmsSender.validatePhone(phone)?.let { newDialog = false; onOpen(it) } }) { Text("Открыть", color = C.Emerald) }
+                TextButton(onClick = { SmsSender.validatePhone(phone)?.let { newDialog = false; onOpen(it) } }) { Text(t("Открыть", "Open"), color = C.Emerald) }
             },
-            dismissButton = { TextButton(onClick = { newDialog = false }) { Text("Отмена", color = C.Muted) } },
+            dismissButton = { TextButton(onClick = { newDialog = false }) { Text(t("Отмена", "Cancel"), color = C.Muted) } },
         )
     }
 }

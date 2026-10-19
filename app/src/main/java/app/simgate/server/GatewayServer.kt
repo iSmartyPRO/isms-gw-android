@@ -252,6 +252,12 @@ class GatewayServer(private val ctx: Context, port: Int) : NanoHTTPD(port) {
                 val sim = simById(res[1].toIntOrNull() ?: -1, a)
                 Http.json(buildJsonObject { put("simId", sim.simId); put("messages", enc(SimMemory.list(sim))) })
             }
+            res.size == 4 && res[0] == "sims" && res[2] == "messages" && res[3] == "sync" && r.method == "POST" -> {
+                val a = apiKey(r, "send")
+                val sim = simById(res[1].toIntOrNull() ?: -1, a)
+                val out = SimMemory.syncToPhone(sim, r.bool("clearSim") == true)
+                Http.ok("copied" to out.copied, "deleted" to out.deleted)
+            }
             res.size == 4 && res[0] == "sims" && res[2] == "messages" && r.method == "DELETE" -> {
                 val a = apiKey(r, "send")
                 val sim = simById(res[1].toIntOrNull() ?: -1, a)
@@ -512,6 +518,12 @@ class GatewayServer(private val ctx: Context, port: Int) : NanoHTTPD(port) {
                 adminOnly(me)
                 val sim = simById(s[1].toIntOrNull() ?: -1, me)
                 Http.ok("deleted" to SimMemory.delete(sim, s[3].toIntOrNull() ?: throw ApiError(400, "index")))
+            }
+            s.size == 4 && s[0] == "sims" && s[2] == "icc" && s[3] == "sync" && m == "POST" -> {
+                adminOnly(me)
+                val sim = simById(s[1].toIntOrNull() ?: -1, me)
+                val res = SimMemory.syncToPhone(sim, r.bool("clearSim") == true)
+                Http.ok("copied" to res.copied, "deleted" to res.deleted)
             }
             s.size == 5 && s[0] == "sims" && s[2] == "icc" && s[4] == "copy" && m == "POST" -> {
                 adminOnly(me)
