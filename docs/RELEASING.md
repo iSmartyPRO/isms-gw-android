@@ -17,14 +17,20 @@ The upload key must never be committed. Store it in the repository secrets
 
 Encode the keystore:
 
+Run from the project root (replace `upload.jks` with your keystore file name):
+
 ```bash
 # Linux / macOS
 base64 -w0 keystore/upload.jks > keystore.b64
-# Windows PowerShell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("keystore\upload.jks")) | Set-Content keystore.b64
 ```
 
-Paste the content of `keystore.b64` into `KEYSTORE_BASE64`, then delete the `.b64` file.
+```powershell
+# Windows PowerShell: copies the base64 text straight to the clipboard.
+# Resolve-Path is required: .NET resolves relative paths against the process folder, not the current PowerShell location.
+[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path ".\keystore\upload.jks"))) | Set-Clipboard
+```
+
+Paste the result into `KEYSTORE_BASE64` (and delete `keystore.b64` if you created it).
 Keep a secure offline backup of the keystore and its passwords — Google Play updates are impossible without it
 (unless you use Play App Signing and request an upload-key reset).
 
