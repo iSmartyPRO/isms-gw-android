@@ -9,6 +9,15 @@ Release notes on GitHub are generated from the section of this file that matches
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-19
+
+### Fixed
+- The *SMS server* connection now works on older devices (Android 8/9) whose system trust store predates
+  the **GlobalSign Root CA - R6** (added to Android in 10). Servers chaining to R6 — such as `sms.ismarty.pro` —
+  previously failed TLS with *"Trust anchor for certification path not found"* on, e.g., a Galaxy S7. The public
+  R6 root is now bundled and trusted alongside the system CAs via `network_security_config`
+  (local cleartext HTTP on the LAN is unaffected).
+
 ## [1.3.0] - 2026-10-19
 
 ### Added
