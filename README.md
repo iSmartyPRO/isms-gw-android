@@ -121,6 +121,10 @@ curl -X POST http://192.168.1.15:8080/api/v1/sms \
   -d '{"to": ["+15551234567"], "text": "Hello from iSMS GW"}'
 ```
 
+> **Connecting to an SMS server?** In *Settings → SMS server* tap **Scan QR code** and point the camera at the QR
+> from your server's add-device wizard — the address and one-time token are filled in and confirmed in one step.
+> You can also open the wizard's `ismsgw://connect` link directly on the phone, or paste it into the web panel.
+
 ## Integration modes
 
 All modes can run at the same time and are enabled independently.
@@ -129,7 +133,7 @@ All modes can run at the same time and are enabled independently.
 |---|---|---|
 | **Local REST API** | The phone runs an HTTP(S) server on your network | Apps on the same LAN or VPN |
 | **Webhooks** | The phone POSTs signed events to your URL | CRMs, helpdesks, bots, ERPs |
-| **Persistent link** | The phone keeps a WebSocket to your server and receives commands | Phones behind NAT / on mobile data, device fleets |
+| **Persistent link** | The phone keeps a WebSocket to your server and receives commands; connect it by **scanning the server's QR code** or opening an `ismsgw://connect` link | Phones behind NAT / on mobile data, device fleets |
 | **Polling** | `GET /api/v1/sms?unacked=1` + `POST /api/v1/sms/ack` | When you cannot receive webhooks |
 | **Telegram bot** | Notifications and commands in your private chat | Owners and small teams |
 

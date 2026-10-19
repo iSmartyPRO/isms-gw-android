@@ -9,7 +9,21 @@ Release notes on GitHub are generated from the section of this file that matches
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-19
+
 ### Added
+- **Connect to the SMS server by QR code or link.** Scan the QR from the server's add-device wizard, or open an
+  `ismsgw://connect?v=1&url=…&token=…&name=…` link from a messenger / the system camera, and the phone configures
+  the *SMS server* mode in one step — no manual typing of the address and token. A confirmation screen always shows
+  the server host and the masked token before anything is applied (a QR could point at someone else's server).
+  The web panel gains a *paste connection link* field with the same parsing and checks. The legacy two-line QR
+  (URL + token) and manual entry keep working.
+  - QR scanning uses [`zxing-android-embedded`](https://github.com/journeyapps/zxing-android-embedded): fully offline,
+    with **no Google Play Services or Google account** — chosen over ML Kit to keep the app free of any Google
+    dependency, in line with its no-cloud, no-analytics design.
+  - The `CAMERA` permission is requested only when you tap *Scan QR code*; the app still installs on devices
+    without a camera (`uses-feature … camera … required="false"`) and falls back to manual entry if it is denied.
+  - Unit tests for the link parser (`net/ConnectLink.kt`), run in CI.
 - SIM memory joins the parts of long (concatenated) SMS into one message. Each message lists the SIM records it
   consists of (`parts`) and the number of parts it was sent in (`total`); incomplete messages are marked.
 
