@@ -9,6 +9,15 @@ Release notes on GitHub are generated from the section of this file that matches
 
 ## [Unreleased]
 
+### Added
+- **IMEI** of each modem slot in *Settings → Device* (masked by default, show/copy) and, for the administrator,
+  in the web panel (*Settings → Phone app*, loaded only on "Show"). Android 8–9 read it directly; Android 10+
+  does not give apps the IMEI, so the app opens the system `*#06#` screen instead. The IMEI is never sent through
+  the REST API, webhooks, Telegram or the SMS server, and is not logged, stored or backed up.
+
+### Changed
+- The app opens on **Messages**; the bottom bar order is now Messages → Gateway → Settings.
+
 ## [1.3.2] - 2026-10-19
 
 ### Fixed

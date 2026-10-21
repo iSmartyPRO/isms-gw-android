@@ -24,6 +24,7 @@ import app.simgate.net.WebhookDispatcher
 import app.simgate.service.Gateway
 import app.simgate.sms.Events
 import app.simgate.sms.SendException
+import app.simgate.sms.DeviceIds
 import app.simgate.sms.SimManager
 import app.simgate.sms.SmsSender
 import app.simgate.sms.SmsStore
@@ -422,7 +423,7 @@ class GatewayServer(private val ctx: Context, port: Int) : NanoHTTPD(port) {
         val me = requireUser(r)
         val isAdmin = me.isAdmin
         // Configuration sections are admin-only.
-        val adminSections = setOf("settings", "webhooks", "remote", "telegram", "firewall", "logs", "backup", "restore", "destinations")
+        val adminSections = setOf("settings", "webhooks", "remote", "telegram", "firewall", "logs", "backup", "restore", "destinations", "device")
         if (s.firstOrNull() in adminSections) adminOnly(me)
         if (s.firstOrNull() == "users") return usersApi(r, s, me)
 
@@ -432,6 +433,20 @@ class GatewayServer(private val ctx: Context, port: Int) : NanoHTTPD(port) {
                 put("sims", enc(simsFor(me)))
             })
             s == listOf("dashboard") -> Http.json(dashboard(me))
+
+            // IMEI: administrator session only (no API key, webhook, Telegram or SMS-server path), never cached or logged.
+            s == listOf("device") && m == "GET" -> Http.json(buildJsonObject {
+                when (val st = DeviceIds.read(ctx)) {
+                    is DeviceIds.State.Available -> {
+                        put("imei", "available")
+                        put("slots", buildJsonArray { st.slots.forEach { add(buildJsonObject { put("slot", it.slot); put("imei", it.imei) }) } })
+                    }
+                    DeviceIds.State.Restricted -> put("imei", "restricted")
+                    DeviceIds.State.NoPermission -> put("imei", "no_permission")
+                    DeviceIds.State.None -> put("imei", "none")
+                }
+                put("dialCode", DeviceIds.DIAL_CODE)
+            })
 
             // --- messages ---
             s == listOf("messages") && m == "GET" -> {
