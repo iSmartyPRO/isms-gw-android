@@ -161,6 +161,7 @@ fun SettingsScreen() {
             SettingRow(Icons.Rounded.Badge, t("Имя устройства", "Device name"), cfg.deviceName, onClick = {
                 dlg = Dlg.Text(t("Имя устройства", "Device name"), cfg.deviceName) { v -> ConfigStore.update { it.copy(deviceName = v.take(40).ifBlank { it.deviceName }) } }
             })
+            ImeiRows()
             ToggleRow(Icons.Rounded.RestartAlt, t("Автозапуск после перезагрузки", "Autostart after reboot"), t("Восстанавливать работу шлюза", "Restore the gateway after reboot"), cfg.autostart, C.Sky) { v -> ConfigStore.update { it.copy(autostart = v) } }
             ToggleRow(Icons.Rounded.BatteryChargingFull, t("Не засыпать", "Keep awake"), t("Удерживать CPU и Wi-Fi активными, пока шлюз работает", "Keep CPU and Wi-Fi awake while the gateway runs"), cfg.keepAwake, C.Amber) { v ->
                 ConfigStore.update { it.copy(keepAwake = v) }; Gateway.applyLocks()

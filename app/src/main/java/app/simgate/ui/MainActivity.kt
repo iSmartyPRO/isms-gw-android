@@ -167,7 +167,7 @@ class MainActivity : ComponentActivity() {
 private fun AppRoot(openPhone: String?, consumed: () -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var chat by rememberSaveable { mutableStateOf<String?>(null) }
-    if (openPhone != null) { chat = openPhone; tab = 1; consumed() }
+    if (openPhone != null) { chat = openPhone; tab = 0; consumed() }
 
     BackHandler(enabled = chat != null) { chat = null }
     BackHandler(enabled = chat == null && tab != 0) { tab = 0 }
@@ -180,7 +180,8 @@ private fun AppRoot(openPhone: String?, consumed: () -> Unit) {
         containerColor = C.Bg,
         bottomBar = {
             NavigationBar(containerColor = C.Surface, tonalElevation = 0.dp) {
-                listOf(Triple(t("Шлюз", "Gateway"), Icons.Rounded.Hub, 0), Triple(t("Сообщения", "Messages"), Icons.Rounded.Chat, 1), Triple(t("Настройки", "Settings"), Icons.Rounded.Tune, 2)).forEach { (label, icon, i) ->
+                // Messages first: as the default SMS app, conversations are what users open the app for.
+                listOf(Triple(t("Сообщения", "Messages"), Icons.Rounded.Chat, 0), Triple(t("Шлюз", "Gateway"), Icons.Rounded.Hub, 1), Triple(t("Настройки", "Settings"), Icons.Rounded.Tune, 2)).forEach { (label, icon, i) ->
                     NavigationBarItem(
                         selected = tab == i, onClick = { tab = i },
                         icon = { Icon(icon, null) }, label = { Text(label) },
@@ -195,8 +196,8 @@ private fun AppRoot(openPhone: String?, consumed: () -> Unit) {
     ) { pad ->
         Box(Modifier.fillMaxSize().background(C.Bg).padding(pad)) {
             when (tab) {
-                0 -> HomeScreen()
-                1 -> ConversationsScreen(onOpen = { chat = it })
+                0 -> ConversationsScreen(onOpen = { chat = it })
+                1 -> HomeScreen()
                 else -> SettingsScreen()
             }
         }

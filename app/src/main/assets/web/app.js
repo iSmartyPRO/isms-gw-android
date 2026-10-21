@@ -1426,6 +1426,10 @@ PAGES.logs = async (v) => {
   timer = setInterval(() => { if (!document.hidden) load().catch(() => {}); }, 6000);
 };
 
+function imeiHidden() {
+  return `<div class="opt"><div class="t"><b>IMEI</b><small>${T('Скрыт. Показывается только администратору и не сохраняется.', 'Hidden. Shown to the administrator only and never stored.')}</small></div><button class="btn sm" data-imei-show><i data-icon="eye"></i>${T('Показать', 'Show')}</button></div>`;
+}
+
 PAGES.settings = async (v) => {
   const [c, sims] = await Promise.all([GET('settings'), GET('sims').catch(() => [])]);
   const s = c.sending, r = c.receiving, srv = c.server || {}, st = c.storage, si = c.storageInfo, cl = c.calls;
@@ -1450,6 +1454,7 @@ PAGES.settings = async (v) => {
         <label class="field"><span>${T('Тема приложения', 'App theme')}</span><select id="appTheme">${THEMES.map(k => `<option value="${k}" ${(c.theme || 'system') === k ? 'selected' : ''}>${esc(themeName(k))}</option>`).join('')}</select></label></div>`
       : `<p class="muted small">${T('Язык и тема приложения меняются в настройках на телефоне.', 'The app language and theme are changed in the settings on the phone.')}</p>`}
       ${c.deviceId ? `<div class="opt"><div class="t"><b>${T('ID устройства', 'Device ID')}</b><small class="mono">${esc(c.deviceId)}</small></div><button class="btn sm" id="cpDev"><i data-icon="copy"></i></button></div>` : ''}
+      <div id="imeiBox">${imeiHidden()}</div>
     </div>
   </div>
   <div class="grid g2">
@@ -1578,6 +1583,26 @@ PAGES.settings = async (v) => {
     } catch (e) { $('#serr').textContent = e.message; }
   };
   if ($('#cpDev')) $('#cpDev').onclick = () => copyText(c.deviceId);
+  // IMEI is requested only when the administrator asks for it and is not kept after "Hide".
+  $('#imeiBox').onclick = async (e) => {
+    const box = $('#imeiBox');
+    if (e.target.closest('[data-imei-hide]')) { box.innerHTML = imeiHidden(); hydrateIcons(box); return; }
+    const cp = e.target.closest('[data-imei-copy]'); if (cp) { copyText(cp.dataset.imeiCopy); return; }
+    if (!e.target.closest('[data-imei-show]')) return;
+    try {
+      const d = await GET('device');
+      const msg = {
+        restricted: T(`Android 10+ не выдаёт IMEI приложениям. Наберите ${d.dialCode} на телефоне — система покажет его.`, `Android 10+ does not give apps the IMEI. Dial ${d.dialCode} on the phone and the system will show it.`),
+        no_permission: T('Нет разрешения «Телефон» в приложении.', 'The app has no Phone permission.'),
+        none: T('IMEI недоступен на этом устройстве.', 'IMEI is not available on this device.'),
+      };
+      box.innerHTML = d.imei === 'available'
+        ? d.slots.map(x => `<div class="opt"><div class="t"><b>IMEI${d.slots.length > 1 ? ' ' + esc(x.slot) : ''}</b><small class="mono">${esc(x.imei)}</small></div><button class="btn sm" data-imei-copy="${esc(x.imei)}" title="${esc(T('Копировать', 'Copy'))}" aria-label="${esc(T('Копировать', 'Copy'))}"><i data-icon="copy"></i></button></div>`).join('')
+          + `<div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn sm" data-imei-hide>${T('Скрыть', 'Hide')}</button></div>`
+        : `<div class="opt"><div class="t"><b>IMEI</b><small>${esc(msg[d.imei] || msg.none)}</small></div></div>`;
+      hydrateIcons(box);
+    } catch (err) { toast(err.message, true); }
+  };
 };
 
 PAGES.docs = async (v) => {
