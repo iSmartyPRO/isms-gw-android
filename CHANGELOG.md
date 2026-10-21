@@ -9,6 +9,8 @@ Release notes on GitHub are generated from the section of this file that matches
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-21
+
 ### Added
 - **IMEI** of each modem slot in *Settings → Device* (masked by default, show/copy) and, for the administrator,
   in the web panel (*Settings → Phone app*, loaded only on "Show"). Android 8–9 read it directly; Android 10+
@@ -138,5 +140,6 @@ First public release.
 - English and Russian UI with a flag switcher; light, dark and system themes.
 - Autostart after reboot, CPU/Wi-Fi wake locks.
 
-[Unreleased]: https://github.com/iSmartyPRO/isms-gw-android/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/iSmartyPRO/isms-gw-android/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/iSmartyPRO/isms-gw-android/releases/tag/v1.4.0
 [1.2.0]: https://github.com/iSmartyPRO/isms-gw-android/releases/tag/v1.2.0
